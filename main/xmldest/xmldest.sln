@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xmldest", "xmldest\xmldest.csproj", "{7EB4AC3C-A7FD-4F16-BD1C-E1E7950DBD67}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "XmlDestSetup", "XmlDestSetup\XmlDestSetup.vdproj", "{3D3F6849-9EC1-4ED0-9A81-7B32C57326A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7EB4AC3C-A7FD-4F16-BD1C-E1E7950DBD67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EB4AC3C-A7FD-4F16-BD1C-E1E7950DBD67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EB4AC3C-A7FD-4F16-BD1C-E1E7950DBD67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EB4AC3C-A7FD-4F16-BD1C-E1E7950DBD67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D3F6849-9EC1-4ED0-9A81-7B32C57326A2}.Debug|Any CPU.ActiveCfg = Debug
+		{3D3F6849-9EC1-4ED0-9A81-7B32C57326A2}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
