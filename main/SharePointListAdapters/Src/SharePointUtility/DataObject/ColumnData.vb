@@ -200,6 +200,7 @@
                     ' Nvarchar(255) (estimate)
                     .Add("Choice", 255)
                     .Add("Text", 255)
+                    .Add("File", 256)
 
                     ' nvarchar - large
                     .Add("Threading", 4000)
@@ -209,7 +210,6 @@
                     .Add("Calculated", 255)
 
                     ' Uniqueidentifier
-                    .Add("File", 50)
                     .Add("Guid", 50)
 
                     ' Varbinary 
