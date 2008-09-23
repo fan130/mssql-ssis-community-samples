@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:tns="http://schemas.microsoft.com/sitka/2008/03/" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" targetNamespace="http://schemas.microsoft.com/sitka/2008/03/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://schemas.microsoft.com/sitka/2008/03/Imports">
+      <xsd:import schemaLocation="http://data.beta.mssds.com/soap/v1?xsd=xsd0" namespace="http://schemas.microsoft.com/sitka/2008/03/" />
+      <xsd:import schemaLocation="http://data.beta.mssds.com/soap/v1?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://data.beta.mssds.com/soap/v1?xsd=xsd2" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="ISitkaSoapService_Create_InputMessage">
+    <wsdl:part name="parameters" element="tns:Create" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Create_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CreateResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Create_ErrorFault_FaultMessage">
+    <wsdl:part name="detail" element="tns:Error" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Get_InputMessage">
+    <wsdl:part name="parameters" element="tns:Get" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Get_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Get_ErrorFault_FaultMessage">
+    <wsdl:part name="detail" element="tns:Error" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Update_InputMessage">
+    <wsdl:part name="parameters" element="tns:Update" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Update_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Update_ErrorFault_FaultMessage">
+    <wsdl:part name="detail" element="tns:Error" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Delete_InputMessage">
+    <wsdl:part name="parameters" element="tns:Delete" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Delete_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DeleteResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Delete_ErrorFault_FaultMessage">
+    <wsdl:part name="detail" element="tns:Error" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Query_InputMessage">
+    <wsdl:part name="parameters" element="tns:Query" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Query_OutputMessage">
+    <wsdl:part name="parameters" element="tns:QueryResponse" />
+  </wsdl:message>
+  <wsdl:message name="ISitkaSoapService_Query_ErrorFault_FaultMessage">
+    <wsdl:part name="detail" element="tns:Error" />
+  </wsdl:message>
+  <wsdl:portType name="ISitkaSoapService">
+    <wsdl:operation name="Create">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/Create" message="tns:ISitkaSoapService_Create_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/CreateResponse" message="tns:ISitkaSoapService_Create_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/CreateErrorFault" name="ErrorFault" message="tns:ISitkaSoapService_Create_ErrorFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Get">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/Get" message="tns:ISitkaSoapService_Get_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/GetResponse" message="tns:ISitkaSoapService_Get_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/GetErrorFault" name="ErrorFault" message="tns:ISitkaSoapService_Get_ErrorFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Update">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/Update" message="tns:ISitkaSoapService_Update_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/UpdateResponse" message="tns:ISitkaSoapService_Update_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/UpdateErrorFault" name="ErrorFault" message="tns:ISitkaSoapService_Update_ErrorFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Delete">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/Delete" message="tns:ISitkaSoapService_Delete_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/DeleteResponse" message="tns:ISitkaSoapService_Delete_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/DeleteErrorFault" name="ErrorFault" message="tns:ISitkaSoapService_Delete_ErrorFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="Query">
+      <wsdl:input wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/Query" message="tns:ISitkaSoapService_Query_InputMessage" />
+      <wsdl:output wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/QueryResponse" message="tns:ISitkaSoapService_Query_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://schemas.microsoft.com/sitka/2008/03/ISitkaSoapService/QueryErrorFault" name="ErrorFault" message="tns:ISitkaSoapService_Query_ErrorFault_FaultMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>

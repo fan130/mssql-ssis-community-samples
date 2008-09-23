@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DiscoveryClientResultsFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Results>
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.SchemaReference" url="http://data.beta.mssds.com/soap/v1?xsd=xsd1" filename="v1.xsd" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.ContractReference" url="http://data.beta.mssds.com/soap/v1?wsdl=wsdl0" filename="v1.wsdl" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.SchemaReference" url="http://data.beta.mssds.com/soap/v1?xsd=xsd0" filename="v10.xsd" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.ContractReference" url="http://data.beta.mssds.com/soap/v1?wsdl" filename="SitkaSoapService.wsdl" />
+    <DiscoveryClientResult referenceType="System.Web.Services.Discovery.SchemaReference" url="http://data.beta.mssds.com/soap/v1?xsd=xsd2" filename="v11.xsd" />
+  </Results>
+</DiscoveryClientResultsFile>
