@@ -1,0 +1,111 @@
+﻿<VisualStudioProject>
+    <BIZTALK
+        ProductVersion = "3.6.1404"
+        SchemaVersion = "1.0"
+        ProjectGuid = "{042ED40D-05CB-4FEC-BF61-D50B8FC514F1}"
+    >
+        <Build>
+            <Settings>
+                <EditorCommon/>
+                <ProjectCommon
+                    AssemblyKeyName = ""
+                    AssemblyKeyFile = "D:\testsamples\sample.snk"
+                    AssemblyDelaySign = "False"
+                    AssemblyTitle = ""
+                    AssemblyDescription = ""
+                    AssemblyDefaultAlias = ""
+                    AssemblyConfiguration = ""
+                    AssemblyTrademark = ""
+                    AssemblyProduct = ""
+                    AssemblyInformationalVersion = "1.0.0.0"
+                    AssemblyFileVersion = "1.0.0.0"
+                    AssemblyCopyright = ""
+                    AssemblyCompany = ""
+                    AssemblyVersion = "1.0.0.0"
+                    DefaultNamespace = "Sample1"
+                    AssemblyName = "Sample1"
+                />
+                <Config
+                    Name = "Development"
+                    ApplicationName = "SSISSample1"
+                    BpelCompliance = "True"
+                    GenerateDebuggingInformation = "True"
+                    EmbedTrackingInformation = "True"
+                    TreatWarningsAsErrors = "False"
+                    WarningLevel = "4"
+                    OutputPath = "bin\Development\"
+                />
+                <Config
+                    Name = "Deployment"
+                    ApplicationName = "SSISSample1"
+                    BpelCompliance = "True"
+                    GenerateDebuggingInformation = "False"
+                    EmbedTrackingInformation = "True"
+                    TreatWarningsAsErrors = "False"
+                    WarningLevel = "4"
+                    OutputPath = "bin\Deployment\"
+                />
+            </Settings>
+            <References>
+                <Reference
+                    Name = "System"
+                    AssemblyName = "System"
+                />
+                <Reference
+                    Name = "System.XML"
+                    AssemblyName = "System.Xml"
+                />
+                <Reference
+                    Name = "System.configuration"
+                    AssemblyName = "System.Configuration"
+                />
+                <Reference
+                    Name = "Microsoft.BizTalk.DefaultPipelines"
+                    AssemblyName = "Microsoft.BizTalk.DefaultPipelines"
+                />
+                <Reference
+                    Name = "Microsoft.BizTalk.GlobalPropertySchemas"
+                    AssemblyName = "Microsoft.BizTalk.GlobalPropertySchemas"
+                />
+                <Reference
+                    Name = "Microsoft.BizTalk.Pipeline.Components"
+                    AssemblyName = "Microsoft.BizTalk.Pipeline.Components"
+                    HintPath = "..\..\WINNT\assembly\GAC_MSIL\Microsoft.BizTalk.Pipeline.Components\3.0.1.0__31bf3856ad364e35\Microsoft.BizTalk.Pipeline.Components.dll"
+                />
+                <Reference
+                    Name = "Microsoft.SQLServer.ManagedDTS"
+                    AssemblyName = "Microsoft.SqlServer.ManagedDTS"
+                    HintPath = "..\..\Program Files\Microsoft SQL Server\90\SDK\Assemblies\Microsoft.SQLServer.ManagedDTS.dll"
+                    AssemblyFolderKey = "hklm\dn\amo"
+                />
+                <Reference
+                    Name = "Microsoft.SQLServer.DTSRuntimeWrap"
+                    AssemblyName = "Microsoft.SqlServer.DTSRuntimeWrap"
+                    HintPath = "..\..\Program Files\Microsoft SQL Server\90\SDK\Assemblies\Microsoft.SQLServer.DTSRuntimeWrap.dll"
+                    AssemblyFolderKey = "hklm\dn\amo"
+                />
+            </References>
+        </Build>
+        <Files>
+            <Include>
+                <File
+                    RelPath = "SalesSchema.xsd"
+                    BuildAction = "Compile"
+                    Namespace = "Sample1"
+                    Type = "SalesSchema"
+                />
+                <File
+                    RelPath = "Sample1Orchestration.odx"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Sample1Pipeline.btp"
+                    BuildAction = "Compile"
+                    Namespace = "Sample1"
+                    Type = "Sample1Pipeline"
+                />
+            </Include>
+        </Files>
+    </BIZTALK>
+</VisualStudioProject>
+

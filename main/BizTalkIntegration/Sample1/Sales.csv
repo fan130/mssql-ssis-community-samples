@@ -1,0 +1,26 @@
+3; August 28, 2008;	<Orders>
+				<Order>
+					<CustomerID>234</CustomerID>
+					<CustomerName>John Bow</CustomerName>
+					<ProductID>34556</ProductID>
+					<ProductName>Keen Pad</ProductName>
+					<Quantity>2</Quantity>
+					<UnitPrice>18.00</UnitPrice>
+				</Order>
+				<Order>
+					<CustomerID>3456</CustomerID>
+					<CustomerName>Hong Kai Park</CustomerName>
+					<ProductID>23344</ProductID>
+					<ProductName>Tennis Balls</ProductName>
+					<Quantity>3</Quantity>
+					<UnitPrice>2.99</UnitPrice>
+				</Order>
+				<Order>
+					<CustomerID>85</CustomerID>
+					<CustomerName>Jenny Smith</CustomerName>
+					<ProductID>4339</ProductID>
+					<ProductName>Running Shoes</ProductName>
+					<Quantity>1</Quantity>
+					<UnitPrice>49.99</UnitPrice>
+				</Order>
+			</Orders>~

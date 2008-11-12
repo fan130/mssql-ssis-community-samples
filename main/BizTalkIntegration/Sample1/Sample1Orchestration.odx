@@ -1,0 +1,166 @@
+﻿#if __DESIGNER_DATA
+#error Do not define __DESIGNER_DATA.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<om:MetaModel MajorVersion="1" MinorVersion="3" Core="2b131234-7959-458d-834f-2dc0769ce683" ScheduleModel="66366196-361d-448d-976f-cab5e87496d2" xmlns:om="http://schemas.microsoft.com/BizTalk/2003/DesignerData">
+    <om:Element Type="Module" OID="e83e39e0-eeab-4bae-a6bf-b97ab715f01b" LowerBound="1.1" HigherBound="43.1">
+        <om:Property Name="ReportToAnalyst" Value="True" />
+        <om:Property Name="Name" Value="Sample1" />
+        <om:Property Name="Signal" Value="False" />
+        <om:Element Type="PortType" OID="fee75cea-308f-4005-bd2d-2599455aae50" ParentLink="Module_PortType" LowerBound="4.1" HigherBound="11.1">
+            <om:Property Name="Synchronous" Value="False" />
+            <om:Property Name="TypeModifier" Value="Internal" />
+            <om:Property Name="ReportToAnalyst" Value="True" />
+            <om:Property Name="Name" Value="Sample1PortType" />
+            <om:Property Name="Signal" Value="False" />
+            <om:Element Type="OperationDeclaration" OID="36764fcd-d5e5-4a19-a3dc-7d261c0ddf22" ParentLink="PortType_OperationDeclaration" LowerBound="6.1" HigherBound="10.1">
+                <om:Property Name="OperationType" Value="OneWay" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="Operation_1" />
+                <om:Property Name="Signal" Value="False" />
+                <om:Element Type="MessageRef" OID="916c0ee1-df58-405f-b2bf-5b87986c3da7" ParentLink="OperationDeclaration_RequestMessageRef" LowerBound="8.13" HigherBound="8.24">
+                    <om:Property Name="Ref" Value="Sample1.SalesSchema" />
+                    <om:Property Name="ReportToAnalyst" Value="True" />
+                    <om:Property Name="Name" Value="Request" />
+                    <om:Property Name="Signal" Value="True" />
+                </om:Element>
+            </om:Element>
+        </om:Element>
+        <om:Element Type="ServiceDeclaration" OID="8aa3fe03-25cb-44da-b96d-b0d12cf528f0" ParentLink="Module_ServiceDeclaration" LowerBound="11.1" HigherBound="42.1">
+            <om:Property Name="InitializedTransactionType" Value="True" />
+            <om:Property Name="IsInvokable" Value="False" />
+            <om:Property Name="TypeModifier" Value="Internal" />
+            <om:Property Name="ReportToAnalyst" Value="True" />
+            <om:Property Name="Name" Value="Sample1Orchestration" />
+            <om:Property Name="Signal" Value="True" />
+            <om:Element Type="VariableDeclaration" OID="20d7e004-6bba-4b2f-9305-0963c4416a22" ParentLink="ServiceDeclaration_VariableDeclaration" LowerBound="18.1" HigherBound="19.1">
+                <om:Property Name="UseDefaultConstructor" Value="True" />
+                <om:Property Name="Type" Value="Microsoft.SqlServer.Dts.Runtime.Application" />
+                <om:Property Name="ParamDirection" Value="In" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="SSISApp" />
+                <om:Property Name="Signal" Value="True" />
+            </om:Element>
+            <om:Element Type="VariableDeclaration" OID="1bd23994-cf01-4556-8f1f-eb79b4794d85" ParentLink="ServiceDeclaration_VariableDeclaration" LowerBound="19.1" HigherBound="20.1">
+                <om:Property Name="UseDefaultConstructor" Value="True" />
+                <om:Property Name="Type" Value="Microsoft.SqlServer.Dts.Runtime.Package" />
+                <om:Property Name="ParamDirection" Value="In" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="SSISPkg" />
+                <om:Property Name="Signal" Value="True" />
+            </om:Element>
+            <om:Element Type="VariableDeclaration" OID="33c98bad-0abd-4089-888b-ffb99c33efb6" ParentLink="ServiceDeclaration_VariableDeclaration" LowerBound="20.1" HigherBound="21.1">
+                <om:Property Name="UseDefaultConstructor" Value="False" />
+                <om:Property Name="Type" Value="Microsoft.SqlServer.Dts.Runtime.Variable" />
+                <om:Property Name="ParamDirection" Value="In" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="SSISVar" />
+                <om:Property Name="Signal" Value="True" />
+            </om:Element>
+            <om:Element Type="AtomicTransaction" OID="274e072b-919d-435f-a07e-ad93913bf42c" ParentLink="ServiceDeclaration_Transaction" LowerBound="13.21" HigherBound="13.40">
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="Transaction_1" />
+                <om:Property Name="Signal" Value="False" />
+            </om:Element>
+            <om:Element Type="TransactionAttribute" OID="aa17216d-cd80-40d0-a913-9874b7764f75" ParentLink="ServiceDeclaration_CLRAttribute" LowerBound="12.1" HigherBound="13.1">
+                <om:Property Name="Batch" Value="True" />
+                <om:Property Name="Retry" Value="True" />
+                <om:Property Name="Timeout" Value="60" />
+                <om:Property Name="Isolation" Value="Serializable" />
+                <om:Property Name="Signal" Value="False" />
+            </om:Element>
+            <om:Element Type="MessageDeclaration" OID="eaa73c86-2aa6-476d-9178-fdf70c78f149" ParentLink="ServiceDeclaration_MessageDeclaration" LowerBound="17.1" HigherBound="18.1">
+                <om:Property Name="Type" Value="Sample1.SalesSchema" />
+                <om:Property Name="ParamDirection" Value="In" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="Sample1Message" />
+                <om:Property Name="Signal" Value="True" />
+            </om:Element>
+            <om:Element Type="ServiceBody" OID="ff68cf2a-1ffe-46ff-b326-c682319e9454" ParentLink="ServiceDeclaration_ServiceBody">
+                <om:Property Name="Signal" Value="False" />
+                <om:Element Type="Receive" OID="ce37850b-3254-4386-816e-d3a2f5e9cb3b" ParentLink="ServiceBody_Statement" LowerBound="23.1" HigherBound="27.1">
+                    <om:Property Name="Activate" Value="True" />
+                    <om:Property Name="PortName" Value="Sample1Port" />
+                    <om:Property Name="MessageName" Value="Sample1Message" />
+                    <om:Property Name="OperationName" Value="Operation_1" />
+                    <om:Property Name="OperationMessageName" Value="Request" />
+                    <om:Property Name="ReportToAnalyst" Value="True" />
+                    <om:Property Name="Name" Value="Receive_1" />
+                    <om:Property Name="Signal" Value="True" />
+                </om:Element>
+                <om:Element Type="Scope" OID="433d9806-4cef-42bd-994c-f6b38516f11d" ParentLink="ServiceBody_Statement" LowerBound="27.1" HigherBound="40.1">
+                    <om:Property Name="InitializedTransactionType" Value="True" />
+                    <om:Property Name="IsSynchronized" Value="False" />
+                    <om:Property Name="ReportToAnalyst" Value="True" />
+                    <om:Property Name="Name" Value="Scope_1" />
+                    <om:Property Name="Signal" Value="True" />
+                    <om:Element Type="VariableAssignment" OID="55e5b61d-f35d-4a57-830e-e93b1cba4a94" ParentLink="ComplexStatement_Statement" LowerBound="32.1" HigherBound="38.1">
+                        <om:Property Name="Expression" Value="SSISApp = new Microsoft.SqlServer.Dts.Runtime.Application();&#xD;&#xA;SSISPkg = SSISApp.LoadPackage(@&quot;C:\SSISBizTalkSamples\Sample1\Sample1.dtsx&quot;,null);&#xD;&#xA;SSISVar = SSISPkg.Variables[&quot;User::orders&quot;];&#xD;&#xA;SSISVar.Value = Sample1Message.SaleSummary.Orders;&#xD;&#xA;SSISPkg.Execute();" />
+                        <om:Property Name="ReportToAnalyst" Value="True" />
+                        <om:Property Name="Name" Value="Expression_1" />
+                        <om:Property Name="Signal" Value="True" />
+                    </om:Element>
+                </om:Element>
+            </om:Element>
+            <om:Element Type="PortDeclaration" OID="45b7cc7b-07d8-4027-8f0a-cc01004e97e9" ParentLink="ServiceDeclaration_PortDeclaration" LowerBound="15.1" HigherBound="17.1">
+                <om:Property Name="PortModifier" Value="Implements" />
+                <om:Property Name="Orientation" Value="Left" />
+                <om:Property Name="PortIndex" Value="-1" />
+                <om:Property Name="IsWebPort" Value="False" />
+                <om:Property Name="OrderedDelivery" Value="False" />
+                <om:Property Name="DeliveryNotification" Value="None" />
+                <om:Property Name="Type" Value="Sample1.Sample1PortType" />
+                <om:Property Name="ParamDirection" Value="In" />
+                <om:Property Name="ReportToAnalyst" Value="True" />
+                <om:Property Name="Name" Value="Sample1Port" />
+                <om:Property Name="Signal" Value="False" />
+                <om:Element Type="LogicalBindingAttribute" OID="4aa40b04-c0c2-4e05-885a-f38eab580764" ParentLink="PortDeclaration_CLRAttribute" LowerBound="15.1" HigherBound="16.1">
+                    <om:Property Name="Signal" Value="False" />
+                </om:Element>
+            </om:Element>
+        </om:Element>
+    </om:Element>
+</om:MetaModel>
+#endif // __DESIGNER_DATA
+[Microsoft.XLANGs.BaseTypes.BPELExportable(false)]
+module Sample1
+{
+    internal porttype Sample1PortType
+    {
+        oneway Operation_1
+        {
+            SalesSchema
+        };
+    };
+    [Microsoft.XLANGs.BaseTypes.BPELExportable(false)]
+    [Microsoft.XLANGs.BaseTypes.Transaction(Retry=true,Batch=true,Timeout=60,TranIsolationLevel=System.Data.IsolationLevel.Serializable)]
+    internal service atomic transaction Sample1Orchestration
+    {
+        [Microsoft.XLANGs.BaseTypes.LogicalBinding()]
+        port implements Sample1PortType Sample1Port;
+        message SalesSchema Sample1Message;
+        Microsoft.SqlServer.Dts.Runtime.Application SSISApp;
+        Microsoft.SqlServer.Dts.Runtime.Package SSISPkg;
+        Microsoft.SqlServer.Dts.Runtime.Variable SSISVar;
+        body ()
+        {
+            [Microsoft.XLANGs.BaseTypes.DesignerPosition("ce37850b-3254-4386-816e-d3a2f5e9cb3b")]
+            activate receive (Sample1Port.Operation_1, Sample1Message);
+            SSISApp = new Microsoft.SqlServer.Dts.Runtime.Application();
+            SSISPkg = new Microsoft.SqlServer.Dts.Runtime.Package();
+            [Microsoft.XLANGs.BaseTypes.DesignerPosition("433d9806-4cef-42bd-994c-f6b38516f11d")]
+            scope
+            {
+                body
+                {
+                    [Microsoft.XLANGs.BaseTypes.DesignerPosition("55e5b61d-f35d-4a57-830e-e93b1cba4a94")]
+                    SSISApp = new Microsoft.SqlServer.Dts.Runtime.Application();
+                    SSISPkg = SSISApp.LoadPackage(@"C:\SSISBizTalkSamples\Sample1\Sample1.dtsx",null);
+                    SSISVar = SSISPkg.Variables["User::orders"];
+                    SSISVar.Value = Sample1Message.SaleSummary.Orders;
+                    SSISPkg.Execute();
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,35 @@
+﻿<VisualStudioProject>
+    <BIZTALK>
+        <Build>
+            <Settings>
+                <EditorCommon/>
+                <ProjectCommon ReferencesPath = "" />
+                <Config
+                    Name = "Development"
+                    RestartHostInstances = "False"
+                    Register = "True"
+                    Redeploy = "True"
+                    ConfigurationDatabase = "BizTalkMgmtDb"
+                    Server = "CHOYEUNG4"
+                />
+                <Config
+                    Name = "Deployment"
+                    RestartHostInstances = "False"
+                    Register = "True"
+                    Redeploy = "True"
+                    ConfigurationDatabase = "BizTalkMgmtDb"
+                    Server = "CHOYEUNG4"
+                />
+            </Settings>
+        </Build>
+        <OtherProjectSettings
+            CopyProjectDestinationFolder = ""
+            CopyProjectUncPath = ""
+            CopyProjectOption = "0"
+            ProjectView = "ProjectFiles"
+            ProjectTrust = "0"
+        />
+        <Files/>
+    </BIZTALK>
+</VisualStudioProject>
+
