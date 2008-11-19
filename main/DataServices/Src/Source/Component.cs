@@ -18,7 +18,7 @@ namespace Microsoft.Samples.DataServices
         Description = "A sample SSIS source adapter for SQL Server Data Services",
         ComponentType = ComponentType.SourceAdapter,
         IconResource = "Microsoft.Samples.DataServices.CloudSource.ico",
-        CurrentVersion = 1
+        CurrentVersion = 2
      )]
     public class SsdsSource : PipelineComponent
     {
@@ -47,8 +47,8 @@ namespace Microsoft.Samples.DataServices
 
             // Add our custom properties
             AddCustomProperty("ContainerID", "Name of the container where we store the data", string.Empty, true);
-            AddCustomProperty("EntityKind", "EntityKind to retrieve from the container", string.Empty, true);
-            //AddCustomProperty("Query", "Query (optional)", string.Empty);
+            AddCustomProperty("EntityKind", "Kind of entity to retrieve from the container (parameter for the KindOf() function)", string.Empty, true);
+            AddCustomProperty("Query", "Filter to add to the where clause of the query(optional)", string.Empty, true);
             AddCustomProperty("PreviewCount", "Number of entities to bring back to determine the column metadata", 1);
 
             // Add the main output
@@ -153,16 +153,19 @@ namespace Microsoft.Samples.DataServices
 
             // Get our entities
             string kind = (string)GetPropertyValue("EntityKind");
-            int entityCount = (int)GetPropertyValue("PreviewCount");
-            Entity[] entities = null;
+            string where = (string)GetPropertyValue("Query");
+            int entityCount = 0;             
             if (preview)
             {
-                entities = _container.GetEntities(kind, lastId, entityCount);
+                entityCount = (int)GetPropertyValue("PreviewCount");                
             }
-            else
-            {
-                entities = _container.GetEntities(kind, lastId);
-            }
+
+            // Get the query for logging purposes
+            string query = Container.BuildQuery(kind, lastId, entityCount, where);
+            ComponentMetaData.FireInformation(0, "SSDS Source", string.Format(CultureInfo.CurrentUICulture, "Running query: {0}", query),
+                                              string.Empty, 0, ref _cancel);
+
+            Entity[] entities = _container.GetEntitiesByQuery(query);
 
             return entities;
         }
@@ -348,7 +351,8 @@ namespace Microsoft.Samples.DataServices
                     break;
 
                 case DataType.DT_NUMERIC:
-                    precision = 28;
+                    precision = 38;
+                    scale = 10;
                     break;
 
                 case DataType.DT_WSTR:
@@ -484,11 +488,36 @@ namespace Microsoft.Samples.DataServices
             int currentVersion = GetComponentVersion();
             if (ComponentMetaData.Version < currentVersion)
             {
-                for (int i = 0; i < ComponentMetaData.CustomPropertyCollection.Count; i++)
+                if (ComponentMetaData.Version < 1)
                 {
-                    if (ComponentMetaData.CustomPropertyCollection[i].Name.Equals("ContainerName"))
+                    for (int i = 0; i < ComponentMetaData.CustomPropertyCollection.Count; i++)
                     {
-                        ComponentMetaData.CustomPropertyCollection[i].Name = "ContainerID";
+                        if (ComponentMetaData.CustomPropertyCollection[i].Name.Equals("ContainerName"))
+                        {
+                            ComponentMetaData.CustomPropertyCollection[i].Name = "ContainerID";
+                        }
+                    }
+                }
+
+                if (ComponentMetaData.Version < 2)
+                {
+                    bool bHasQuery = false;
+
+                    IDTSCustomPropertyCollection100 props = ComponentMetaData.CustomPropertyCollection;
+                    int count = props.Count;                    
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (props[i].Name.Equals("Query", StringComparison.Ordinal))
+                        {
+                            bHasQuery = true;
+                            break;
+                        }
+                    }
+
+                    if (!bHasQuery)
+                    {
+                        // add query custom property
+                        AddCustomProperty("Query", "Filter to add to the where clause of the query(optional)", string.Empty, true);
                     }
                 }
 

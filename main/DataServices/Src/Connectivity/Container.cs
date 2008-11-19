@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
 
 namespace Microsoft.Samples.DataServices.Connectivity
 {
@@ -12,42 +13,25 @@ namespace Microsoft.Samples.DataServices.Connectivity
         {
         }
 
-        public Entity[] GetEntities(string kind)
-        {
-            return GetEntities(kind, string.Empty, 0);
-        }
-
-        public Entity[] GetEntities(string kind, string lastId)
-        {
-            return GetEntities(kind, lastId, 0);
-        }
-
-        public Entity[] GetEntities(string kind, string lastId, int max)
+        public static string BuildQuery(string kind, string lastId, int max, string where)
         {
             // Setup the query
             bool hasWhere = false;
-            string query = string.Empty;
-            StringBuilder sb = new StringBuilder("from e in entities ");
+            StringBuilder sb = new StringBuilder("from e in entities");
 
             // limit the query by kind
             if (!string.IsNullOrEmpty(kind))
             {
-                if (!hasWhere)
-                {
-                    sb.Append("where ");
-                    hasWhere = true;
-                }
-                else
-                {
-                    sb.Append("&& ");
-                }
-
-                // NOTE: We don't worry about SQL injection type attacks for sitka queries, but
-                // we would have to protect against them if this query was being executed
-                // against a database
-                sb.Append("e.Kind == \"");
+                sb.Append(".OfKind(\"");
                 sb.Append(EscapeQuotes(kind));
-                sb.Append("\" ");
+                sb.Append("\")");
+            }
+
+            if (!string.IsNullOrEmpty(where))
+            {
+                hasWhere = true;
+                sb.Append(" where ");
+                sb.Append(where);
             }
 
             if (!string.IsNullOrEmpty(lastId))
@@ -55,11 +39,11 @@ namespace Microsoft.Samples.DataServices.Connectivity
                 // check if we already have a where clause
                 if (!hasWhere)
                 {
-                    sb.Append("where ");
+                    sb.Append(" where ");
                 }
                 else
                 {
-                    sb.Append("&& ");
+                    sb.Append(" && ");
                 }
 
                 // NOTE: We don't worry about SQL injection type attacks for sitka queries, but
@@ -67,35 +51,53 @@ namespace Microsoft.Samples.DataServices.Connectivity
                 // against a database
                 sb.Append("e.Id > \"");
                 sb.Append(EscapeQuotes(lastId));
-                sb.Append("\" ");
+                sb.Append("\"");
             }
 
-            sb.Append("select e");
+            sb.Append(" select e");
 
-            // TODO: add clause to limit the number of entities we get back
-            // The Sitka API doesn't currently support this
+            string query = sb.ToString();
+
+            // Limit the number of rows that get returned using the Take() function
+            // http://msdn.microsoft.com/en-us/library/cc952306.aspx
             if (max > 0)
             {
+                query = string.Format(CultureInfo.InvariantCulture, "({0}).Take({1})", query, max);
             }
 
-            query = sb.ToString();
+            return query;
+        }
 
-            // Setup the _scope
+        public Entity[] GetEntities(string kind)
+        {
+            return GetEntities(kind, string.Empty, 0, string.Empty);
+        }
+
+        public Entity[] GetEntities(string kind, string lastId)
+        {
+            return GetEntities(kind, lastId, 0, string.Empty);
+        }
+
+        public Entity[] GetEntities(string kind, string lastId, int max)        
+        {
+            return GetEntities(kind, lastId, max, string.Empty);
+        }
+
+        public Entity[] GetEntities(string kind, string lastId, int max, string where)
+        {
+            string query = BuildQuery(kind, lastId, max, where);
+            return GetEntitiesByQuery(query);
+        }
+
+        public Entity[] GetEntitiesByQuery(string query)
+        {
+            // Setup the scope
             SitkaClient.Scope scope = connection.Scope;
             scope.ContainerId = this.Id;
 
             SitkaClient.Entity[] sitkaEntities = connection.Query(scope, query);
 
-            int count = sitkaEntities.Length;
-
-            // TODO: Remove once we can limit via query
-            if (max > 0)
-            {
-                // We're limiting the number of results
-                count = Math.Min(max, sitkaEntities.Length);
-            }
-
-            Entity[] entities = new Entity[count];
+            Entity[] entities = new Entity[sitkaEntities.Length];
             for (int i = 0; i < entities.Length; i++)
             {
                 Entity e = new Entity();
@@ -150,7 +152,7 @@ namespace Microsoft.Samples.DataServices.Connectivity
         /// </summary>
         /// <param name="str">string to escape</param>
         /// <returns>escaped string</returns>
-        private string EscapeQuotes(string str)
+        static private string EscapeQuotes(string str)
         {
             return str.Replace("\"", "\\\"");
         }

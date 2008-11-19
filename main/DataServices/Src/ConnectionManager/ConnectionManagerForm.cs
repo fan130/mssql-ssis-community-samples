@@ -20,6 +20,7 @@ namespace Microsoft.Samples.DataServices
         private IServiceProvider _serviceProvider;
         private ConnectionManager _connectionManager;
         private IErrorCollectionService _errorCollector;
+        private string _url = string.Empty; // store the service URL
 
         #endregion
 
@@ -153,6 +154,12 @@ namespace Microsoft.Samples.DataServices
             {
                 SsdsConnectionManager cm = new SsdsConnectionManager();
                 cm.ConnectionString = this.GetConnectionString(ConnectionStringDisplayOption.IncludePassword);
+
+                // Override default service URL
+                if (!string.IsNullOrEmpty(this._url))
+                {
+                    cm.Url = this._url;
+                }
                 
                 Connection conn = (Connection)cm.AcquireConnection(null);
 
@@ -185,6 +192,7 @@ namespace Microsoft.Samples.DataServices
             this.Authority = innerManager.Authority;
             this.UserName = innerManager.UserName;
             this.Password = innerManager.GetPassword();
+            this._url = innerManager.Url;
 
             this.btnTest.Enabled = this.ValidateConnectionString();
         }

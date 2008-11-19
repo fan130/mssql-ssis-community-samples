@@ -7,6 +7,7 @@ using Microsoft.SqlServer.Dts.Pipeline;
 using Microsoft.SqlServer.Dts.Runtime;
 using Microsoft.Samples.DataServices.Connectivity;
 using System.Globalization;
+using System.ComponentModel;
 
 [assembly:CLSCompliant(true)]
 
@@ -80,6 +81,13 @@ namespace Microsoft.Samples.DataServices
         public override object AcquireConnection(object txn)
         {
             Connection connection = Connection.Create(authority, userName, password);
+
+            // Check if we need to override the URL of the service
+            if (!string.IsNullOrEmpty(url))
+            {
+                connection.Url = url;
+            }
+
             return connection;
         }
         public override void ReleaseConnection(object connection)
@@ -143,6 +151,21 @@ namespace Microsoft.Samples.DataServices
                 ParseConnectionString(value);
             }
         }
+
+        private string url = String.Empty;
+        
+        [Description("Setting a value will override the default SSDS service URI.")]
+        public string Url
+        {
+            get
+            {
+                return url;
+            }
+            set
+            {
+                url = value;
+            }
+        }
         #endregion
 
         #region IDTSComponentPersist Members
@@ -150,6 +173,7 @@ namespace Microsoft.Samples.DataServices
         #region String Constants
         private const string PERSIST_XML_ELEMENT = "SSDSConnectionManager";
         private const string PERSIST_XML_CONNECTIONSTRING = "ConnectionString";
+        private const string PERSIST_XML_URL = "Url";
         private const string PERSIST_XML_PASSWORD = "PassWord";
         private const string PERSIST_XML_SENSITIVE = "Sensitive";
         #endregion
@@ -163,10 +187,10 @@ namespace Microsoft.Samples.DataServices
             }
 
             // Unpersist the connection string (excluding the password)
-            XmlNode attr = rootNode.Attributes.GetNamedItem(PERSIST_XML_CONNECTIONSTRING);
-            if (attr != null)
+            XmlNode csAttr = rootNode.Attributes.GetNamedItem(PERSIST_XML_CONNECTIONSTRING);
+            if (csAttr != null)
             {
-                this.ConnectionString = attr.Value;
+                this.ConnectionString = csAttr.Value;
             }
 
             // Unpersist the password
@@ -178,6 +202,13 @@ namespace Microsoft.Samples.DataServices
                     password = childNode.InnerText;
                 }
             }
+
+            // Unpersist the service URL
+            XmlNode urlAttr = rootNode.Attributes.GetNamedItem(PERSIST_XML_URL);
+            if (urlAttr != null)
+            {
+                this.url = urlAttr.Value;
+            }
         }
 
         void IDTSComponentPersist.SaveToXML(XmlDocument doc, IDTSInfoEvents infoEvents)
@@ -187,9 +218,9 @@ namespace Microsoft.Samples.DataServices
             doc.AppendChild(rootElement);
 
             // Persist the connection string (excluding the password)
-            XmlAttribute attr = doc.CreateAttribute(PERSIST_XML_CONNECTIONSTRING);
-            attr.Value = this.ConnectionString;
-            rootElement.Attributes.Append(attr);
+            XmlAttribute csAttr = doc.CreateAttribute(PERSIST_XML_CONNECTIONSTRING);
+            csAttr.Value = this.ConnectionString;
+            rootElement.Attributes.Append(csAttr);
 
             // Persist the password separately
             if (!String.IsNullOrEmpty(password))
@@ -202,10 +233,15 @@ namespace Microsoft.Samples.DataServices
                 // this value should be protected according to the 
                 // ProtectionLevel of the package
                 pswdElement.InnerText = password;
-                attr = doc.CreateAttribute(PERSIST_XML_SENSITIVE);
-                attr.Value = "1";
-                pswdElement.Attributes.Append(attr);
+                XmlAttribute pwAttr = doc.CreateAttribute(PERSIST_XML_SENSITIVE);
+                pwAttr.Value = "1";
+                pswdElement.Attributes.Append(pwAttr);
             }
+
+            // Persist the service URL
+            XmlAttribute urlAttr = doc.CreateAttribute(PERSIST_XML_URL);
+            urlAttr.Value = this.url;
+            rootElement.Attributes.Append(urlAttr);
         }
 
         #endregion

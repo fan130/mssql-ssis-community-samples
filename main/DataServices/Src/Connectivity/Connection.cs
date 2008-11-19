@@ -13,7 +13,7 @@ namespace Microsoft.Samples.DataServices.Connectivity
     {
         const string GetAllQuery = "from e in entities select e";
 
-        private SitkaClient.SitkaSoapService service = new SitkaClient.SitkaSoapService();
+        private SitkaClient.SitkaSoapEndpoint service = new SitkaClient.SitkaSoapEndpoint();
         private SitkaClient.Scope _scope = new SitkaClient.Scope();
 
         private Authority authority = null;
@@ -33,6 +33,27 @@ namespace Microsoft.Samples.DataServices.Connectivity
             {
                 return authority;
             }
+        }
+
+        /// <summary>
+        /// SSDS service URL
+        /// </summary>
+        public string Url
+        {
+            get
+            {
+                return service.Url;
+            }
+            set
+            {
+                service.Url = value;
+            }
+        }
+
+        public static string GetDefaultServiceUrl()
+        {
+            SitkaClient.SitkaSoapEndpoint s = new SitkaClient.SitkaSoapEndpoint();
+            return s.Url;
         }
 
         /// <summary>
