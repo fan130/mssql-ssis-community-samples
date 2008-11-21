@@ -22,17 +22,20 @@ Namespace Adapter
         Private _disposed As Boolean
         Private _sharepointClient As ListsService.ListsSoapClient
         Private _sharepointUri As Uri
-
+        Private _sharepointBaseUri As Uri
+        Private _webserviceUrl As String = "/_vti_bin/lists.asmx"
         ''' <summary>
         ''' Constructor keeps an instance of the lists Service handy
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub New(ByVal sharepointUri As Uri)
-            If (Not sharepointUri.AbsoluteUri.ToLower().EndsWith("lists.asmx")) Then
-                _sharepointUri = New Uri(sharepointUri.AbsoluteUri.TrimEnd("/") + "/_vti_bin/lists.asmx")
+            Dim sharePointPath As String = sharepointUri.AbsoluteUri.ToLower()
+            If (Not sharePointPath.EndsWith(_webserviceUrl)) Then
+                _sharepointUri = New Uri(sharePointPath.TrimEnd("/") + _webserviceUrl)
             Else
-                _sharepointUri = sharepointUri
+                _sharepointUri = New Uri(sharePointPath)
             End If
+            _sharepointBaseUri = New Uri(_sharepointUri.AbsoluteUri.Replace(_webserviceUrl, ""))
 
             ResetConnection()
         End Sub
@@ -84,13 +87,18 @@ Namespace Adapter
         ''' <param name="listName">Name of a list to load from SharePoint</param>
         ''' <returns>A list of SharepoingField objects that describe the field</returns>
         ''' <remarks></remarks>
-        Public Function GetSharePointFields(ByVal listName As String) As List(Of ColumnData)
+        Public Function GetSharePointFields(ByVal listName As String, ByVal viewId As String) As List(Of ColumnData)
 
             Try
-                Dim listData = GetSharePointList(listName)
+                Dim listData = GetSharePointList(listName, viewId)
+
+                ' Return the columns, but put the view columns in the List's specified order and then
+                ' add the others after in the list.
                 Dim fieldInfo = _
                     ( _
                         From l In listData...<t:Fields>.<t:Field> _
+                        Join m In listData...<t:ViewFields>.<t:FieldRef> _
+                            On l.@Name Equals m.@Name _
                         Select New ColumnData With _
                         { _
                             .Name = l.@Name, _
@@ -99,12 +107,32 @@ Namespace Adapter
                             .IsReadOnly = Boolean.Parse(IIf(l.@ReadOnly Is Nothing, False, l.@ReadOnly)), _
                             .IsHidden = Boolean.Parse(IIf(l.@Hidden Is Nothing, False, l.@Hidden)), _
                             .MaxLength = l.@MaxLength, _
+                            .IsInView = True, _
                             .Choices = _
                             ( _
                                 From c In l.<t:CHOICES>.<t:CHOICE> _
                                 Select New ColumnChoiceData With {.Name = c.Value} _
                             ).ToList() _
-                        } _
+                       } _
+                    ).Union _
+                    ( _
+                        From l In listData...<t:Fields>.<t:Field> _
+                        Where Not (From x In listData...<t:ViewFields>.<t:FieldRef> Where x.@Name = l.@Name).Count() = 1 _
+                        Select New ColumnData With _
+                        { _
+                            .Name = l.@Name, _
+                            .DisplayName = l.@DisplayName, _
+                            .SharePointType = l.@Type, _
+                            .IsReadOnly = Boolean.Parse(IIf(l.@ReadOnly Is Nothing, False, l.@ReadOnly)), _
+                            .IsHidden = Boolean.Parse(IIf(l.@Hidden Is Nothing, False, l.@Hidden)), _
+                            .MaxLength = l.@MaxLength, _
+                            .IsInView = False, _
+                            .Choices = _
+                            ( _
+                                From c In l.<t:CHOICES>.<t:CHOICE> _
+                                Select New ColumnChoiceData With {.Name = c.Value} _
+                            ).ToList() _
+                       } _
                     ).ToList()
 
                 Return fieldInfo
@@ -178,7 +206,8 @@ Namespace Adapter
         ''' <param name="localPath">Local full path of file to upload</param>
         ''' <param name="doPause">Whether to inject a 30 second pause</param>
         ''' <remarks></remarks>
-        Private Shared Sub ExecuteUploadSharePointFile(ByVal remotePath As String, ByVal localPath As String, ByVal doPause As Boolean)
+        Private Shared Sub ExecuteUploadSharePointFile( _
+            ByVal remotePath As String, ByVal localPath As String, ByVal doPause As Boolean)
 
             If (doPause) Then
                 System.Threading.Thread.Sleep(30000)
@@ -203,13 +232,13 @@ Namespace Adapter
         ''' <returns>XML from SharePoint API</returns>
         ''' <remarks></remarks>
         Private Function GetSharePointListItems( _
-                ByVal listName As String, ByVal queryXml As XElement, _
+                ByVal listName As String, ByVal viewId As String, ByVal queryXml As XElement, _
                 ByVal viewXml As XElement, ByVal pagingSize As Short, _
                 ByVal queryOptionsXml As XElement) As XElement
 
             Dim client = _sharepointClient
             Try
-                Return client.GetListItems(listName, Nothing, queryXml, viewXml, pagingSize, queryOptionsXml, Nothing)
+                Return client.GetListItems(listName.Trim(), viewId, queryXml, viewXml, pagingSize, queryOptionsXml, Nothing)
             Catch ex As System.ServiceModel.FaultException
                 Throw New SharePointUnhandledException("Unspecified SharePoint Error.  A possible reason might be you are trying to retrieve too many items at a time (Batch size)", ex)
             End Try
@@ -227,7 +256,7 @@ Namespace Adapter
         ''' <returns>A list containing all of the records. Each item in the list is a dictionary of all the fields and values</returns>
         ''' <remarks></remarks>
         Public Function GetSharePointListItemData( _
-                ByVal listName As String, ByVal fieldNames As IEnumerable(Of String), _
+                ByVal listName As String, ByVal viewId As String, ByVal fieldNames As IEnumerable(Of String), _
                 ByVal query As XElement, ByVal isRecursive As Boolean, ByVal pagingSize As Short) _
                 As IEnumerable(Of Dictionary(Of String, String))
 
@@ -255,7 +284,7 @@ Namespace Adapter
                         <ViewAttributes Scope=<%= IIf(isRecursive, "Recursive", "") %>></ViewAttributes>
                     </QueryOptions>
 
-                Dim listItemData = GetSharePointListItems(listName, query, xmlViewFields, pagingSize, xmlQueryOptions)
+                Dim listItemData = GetSharePointListItems(listName, viewId, query, xmlViewFields, pagingSize, xmlQueryOptions)
                 xmlResults.Add(listItemData...<z:row>)
                 nextPosition = listItemData...<rs:data>.@ListItemCollectionPositionNext
 
@@ -274,14 +303,42 @@ Namespace Adapter
         End Function
 
         ''' <summary>
+        ''' Find the view and return the ID to continue the load
+        ''' </summary>
+        ''' <param name="listName"></param>
+        ''' <param name="viewName"></param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Public Function LookupViewName(ByVal listName As String, ByVal viewName As String) As String
+
+            If ((viewName IsNot Nothing) AndAlso (viewName.Length > 0)) Then
+                Dim viewAdapter As ViewsAdapter = New ViewsAdapter(_sharepointBaseUri)
+                Dim viewData = viewAdapter.GetViewList(listName.Trim())
+                Dim viewId = From x In viewData Where x.DisplayName.ToUpper() = viewName.ToUpper() Select x.Name
+
+                If (viewId.Count() = 1) Then
+                    Return viewId(0)
+                Else
+                    Throw New SharePointUtility.SharePointUnhandledException( _
+                        String.Format("List '{0}' does not contain a view named '{1}'", listName, viewName))
+                End If
+            Else
+                Return Nothing
+            End If
+
+
+        End Function
+
+
+        ''' <summary>
         ''' Return the elements within a SharePoint list
         ''' </summary>
         ''' <param name="listName">Name of list to grab items for</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Private Function GetSharePointList(ByVal listName As String) As XElement
+        Private Function GetSharePointList(ByVal listName As String, ByVal viewId As String) As XElement
             Dim client = _sharepointClient
-            Return client.GetList(listName)
+            Return client.GetListAndView(listName.Trim(), viewId)
         End Function
 
         ''' <summary>
@@ -291,7 +348,7 @@ Namespace Adapter
         ''' <param name="batchXml">SharePoint Batch XML Structure</param>
         ''' <returns>XElement structure with results.</returns>
         ''' <remarks></remarks>
-        Public Function ExecuteSharePointUpdateBatch(ByVal listName As String, ByVal batchXml As XElement, ByVal batchSize As Short) As XElement
+        Public Function ExecuteSharePointUpdateBatch(ByVal listName As String, ByVal viewId As String, ByVal batchXml As XElement, ByVal batchSize As Short) As XElement
 
             ' Generate an ID for all of th ebatch items
             Dim idGen As Short = 0
@@ -309,7 +366,7 @@ Namespace Adapter
                 Dim batchGroupXml = (From element In batchXml.Elements _
                                      Select element).Skip(batchSize * i).Take(batchSize)
 
-                Dim batchWrapper = <Batch OnError="Continue" ListVersion="1"><%= batchGroupXml %></Batch>
+                Dim batchWrapper = <Batch OnError="Continue" ListVersion="1" ViewName=<%= viewId %>><%= batchGroupXml %></Batch>
 
                 '
                 ' Perform the update
@@ -352,7 +409,7 @@ Namespace Adapter
             ' Look for errors in the results and add them to the current results
             '
             ' Get the public fields to match against in the returned results
-            Dim fields = GetSharePointFields(listName)
+            Dim fields = GetSharePointFields(listName, viewId)
             Dim activeFields = From f In fields _
                                Where f.IsHidden = False
 
@@ -449,7 +506,7 @@ Namespace Adapter
             End If
 
             Dim client = _sharepointClient
-            Return client.UpdateListItems(listName, batchXml)
+            Return client.UpdateListItems(listName.Trim(), batchXml)
 
         End Function
 

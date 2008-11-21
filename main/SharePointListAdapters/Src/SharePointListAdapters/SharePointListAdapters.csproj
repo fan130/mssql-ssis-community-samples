@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30708</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{FCE864A7-7B0C-48A5-9F79-F92AF2402082}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -28,7 +28,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\100\DTS\Tasks\</OutputPath>
+    <OutputPath>\Program Files\Microsoft SQL Server\100\DTS\PipelineComponents</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,7 +39,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\..\..\..\Program Files\Microsoft SQL Server\100\DTS\Tasks\</OutputPath>
+    <OutputPath>\Program Files\Microsoft SQL Server\100\DTS\PipelineComponents</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -48,10 +48,6 @@
     <Reference Include="Microsoft.SqlServer.DTSPipelineWrap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SQLServer.DTSRuntimeWrap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=x86" />
     <Reference Include="Microsoft.SqlServer.PipelineHost, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
-    <Reference Include="SharePointUtility, Version=1.0.0.0, Culture=neutral, PublicKeyToken=253465020eb157b0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\SharePointUtility\bin\Debug\SharePointUtility.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -79,6 +75,13 @@
   <ItemGroup>
     <EmbeddedResource Include="Icons\SharePointSource.ico" />
     <EmbeddedResource Include="Icons\SharePointDestination.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharePointUtility\SharePointUtility.vbproj">
+      <Project>{A3117F6A-B873-4B05-9B4B-84FE9B0B6960}</Project>
+      <Name>SharePointUtility</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

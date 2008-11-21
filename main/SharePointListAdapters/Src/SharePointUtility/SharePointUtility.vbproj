@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30708</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A3117F6A-B873-4B05-9B4B-84FE9B0B6960}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadataStorage Include="Service References\ListsService\" />
+    <WCFMetadataStorage Include="Service References\ViewsService\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Service References\ListsService\lists.disco" />
@@ -156,11 +157,34 @@
     </None>
     <None Include="My Project\DataSources\System.Xml.XmlElement.datasource" />
     <None Include="sample.snk" />
+    <None Include="Service References\ViewsService\views.wsdl" />
+    <Compile Include="Adapter\ViewsAdapter.vb" />
+    <Compile Include="DataObject\ViewData.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
     </Compile>
+    <Compile Include="Service References\ViewsService\Reference.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="SharePointException.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\ViewsService\views.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\ViewsService\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\ViewsService\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\ViewsService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.vb</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

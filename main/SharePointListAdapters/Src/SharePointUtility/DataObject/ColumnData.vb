@@ -14,6 +14,7 @@
         Private _displayName As String
         Private _type As String
         Private _isReadOnly As Boolean
+        Private _IsInView As Boolean
         Private _isHidden As Boolean
         Private _maxLength As Integer
         Private _choices As List(Of ColumnChoiceData)
@@ -110,6 +111,20 @@
             End Set
         End Property
 
+        ''' <summary>
+        ''' Whether this field is marked as hidden by SharePoint
+        ''' </summary>
+        ''' <value></value>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Public Property IsInView() As Boolean
+            Get
+                Return _isInView
+            End Get
+            Friend Set(ByVal value As Boolean)
+                _isInView = value
+            End Set
+        End Property
         ''' <summary>
         ''' The Max Length of the field, determined by the datatype. This cannot be set to 0. It is -1 if there is no limit. 
         ''' Otherwise, setting the datatype will also set this if it is not defined by SharePoint itself.

@@ -20,24 +20,12 @@ Public NotInheritable Class ListServiceUtility
     ''' <param name="listName">Name of a list to load from SharePoint</param>
     ''' <returns>A list of SharepoingField objects that describe the field</returns>
     ''' <remarks></remarks>
-    Public Shared Function GetFields(ByVal sharepointUri As Uri, ByVal listName As String) As List(Of DataObject.ColumnData)
+    Public Shared Function GetFields(ByVal sharepointUri As Uri, ByVal listName As String, ByVal viewName As String) As List(Of DataObject.ColumnData)
 
         Using listsProxy = New ListsAdapter(sharepointUri)
-            Return listsProxy.GetSharePointFields(listName)
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
+            Return listsProxy.GetSharePointFields(listName, viewId)
         End Using
-
-    End Function
-
-    ''' <summary>
-    ''' Gets the fields in a target SharePoint list
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Name of a list to load from SharePoint</param>
-    ''' <returns>A list of SharepoingField objects that describe the field</returns>
-    ''' <remarks></remarks>
-    Public Shared Function GetFields(ByVal sharepointUrl As String, ByVal listName As String) As List(Of DataObject.ColumnData)
-
-        Return GetFields(New Uri(sharepointUrl), listName)
 
     End Function
 
@@ -53,33 +41,14 @@ Public NotInheritable Class ListServiceUtility
     ''' <returns>A list containing all of the records. Each item in the list is a dictionary of all the fields and values</returns>
     ''' <remarks></remarks>
     Public Shared Function GetListItemData(ByVal sharepointUri As Uri, ByVal listName As String, _
-                ByVal fieldNames As IEnumerable(Of String), ByVal query As XElement, _
-                ByVal isRecursive As Boolean, ByVal pagingSize As Short) _
+                ByVal viewName As String, ByVal fieldNames As IEnumerable(Of String), _
+                ByVal query As XElement, ByVal isRecursive As Boolean, ByVal pagingSize As Short) _
             As IEnumerable(Of Dictionary(Of String, String))
 
         Using listsProxy = New ListsAdapter(sharepointUri)
-            Return listsProxy.GetSharePointListItemData(listName, fieldNames, query, isRecursive, pagingSize)
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
+            Return listsProxy.GetSharePointListItemData(listName, viewId, fieldNames, query, isRecursive, pagingSize)
         End Using
-
-    End Function
-
-    ''' <summary>
-    ''' Get the list items of a SharePoint List
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Name of list to get data for</param>
-    ''' <param name="fieldNames">Names of fields to retrieve from list</param>
-    ''' <param name="query">&lt;Query&gt;caml query code&lt;/Query&gt; If this is invalid, it will be ignored.</param>
-    ''' <param name="isRecursive">Whether to get all items in the target folder and subfolders</param>
-    ''' <param name="pagingSize"># of records to retrieve at a time as the full list loads</param>
-    ''' <returns>A list containing all of the records. Each item in the list is a dictionary of all the fields and values</returns>
-    ''' <remarks></remarks>
-    Public Shared Function GetListItemData(ByVal sharepointUrl As String, ByVal listName As String, _
-                ByVal fieldNames As IEnumerable(Of String), ByVal query As XElement, _
-                ByVal isRecursive As Boolean, ByVal pagingSize As Short) _
-            As IEnumerable(Of Dictionary(Of String, String))
-
-        Return GetListItemData(New Uri(sharepointUrl), listName, fieldNames, query, isRecursive, pagingSize)
 
     End Function
 
@@ -104,21 +73,6 @@ Public NotInheritable Class ListServiceUtility
     End Function
 
     ''' <summary>
-    ''' Upload files to a SharePoint document library
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Name of Document Library list name</param>
-    ''' <param name="localFilePathList">Name of local file paths to upload</param>
-    ''' <returns>Dictionary of all files with a status indicating if the upload was successful</returns>
-    ''' <remarks></remarks>
-    Public Shared Function UploadFiles(ByVal sharepointUrl As String, ByVal listName As String, ByVal localFilePathList As IEnumerable(Of String)) _
-            As IDictionary(Of String, Boolean)
-
-        Return UploadFiles(New Uri(sharepointUrl), listName, localFilePathList)
-
-    End Function
-
-    ''' <summary>
     ''' Remove files from a SharePoint Document Library
     ''' </summary>
     ''' <param name="sharepointUri">URL to the SharePoint site or subsite that has the list</param>
@@ -127,7 +81,7 @@ Public NotInheritable Class ListServiceUtility
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Shared Function RemoveFiles( _
-            ByVal sharepointUri As Uri, ByVal listName As String, _
+            ByVal sharepointUri As Uri, ByVal listName As String, ByVal viewName As String, _
             ByVal localFilePathList As IEnumerable(Of String)) _
         As XElement
 
@@ -136,8 +90,11 @@ Public NotInheritable Class ListServiceUtility
             ' Get the target URI to upload the files to
             Dim targetUri = GetSharePointTargetUri(sharepointUri, listName)
 
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
+
             ' Get the list items to match against the file ref in order to get the ID needed for deleting the files
-            Dim data = listsProxy.GetSharePointListItemData("Documents", New String() {"FileRef", "ID"}, <Query/>, False, 300)
+            Dim data = listsProxy.GetSharePointListItemData( _
+                "Documents", viewName, New String() {"FileRef", "ID"}, <Query/>, False, 300)
 
             ' Join the files in the list with the fileref field from SharePoint.
             ' The fileref field is in the format [version]#[listname]/[filename], so we need to do a bit of work to get something that joins
@@ -150,26 +107,10 @@ Public NotInheritable Class ListServiceUtility
                                 </Method>
             Dim batchXml = <batch><%= batchItems %></batch>
 
-            Return listsProxy.ExecuteSharePointUpdateBatch(listName, batchXml, 250)
+            Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, 250)
         End Using
 
     End Function
-
-    ''' <summary>
-    ''' Remove files from a SharePoint Document Library
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Document Library List Name</param>
-    ''' <param name="localFilePathList">List of local full paths of files to remove</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Shared Function RemoveFiles(ByVal sharepointUrl As String, ByVal listName As String, ByVal localFilePathList As IEnumerable(Of String)) _
-        As XElement
-
-        Return RemoveFiles(New Uri(sharepointUrl), listName, localFilePathList)
-
-    End Function
-
 
     ''' <summary>
     ''' Create a subfolder on a SharePoint site
@@ -179,11 +120,13 @@ Public NotInheritable Class ListServiceUtility
     ''' <param name="folderList">List of foldernames to create</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Shared Function CreateFolders(ByVal sharepointUri As Uri, ByVal listName As String, ByVal folderList As IEnumerable(Of String)) As XElement
+    Public Shared Function CreateFolders(ByVal sharepointUri As Uri, ByVal listName As String, ByVal viewName As String, ByVal folderList As IEnumerable(Of String)) As XElement
 
         Const ITEMTYPE_FOLDER As Short = 1
 
         Using listsProxy = New ListsAdapter(sharepointUri)
+
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
 
             Dim batchItems = From f In folderList _
                              Select _
@@ -194,24 +137,11 @@ Public NotInheritable Class ListServiceUtility
                                 </Method>
             Dim batchXml = <batch><%= batchItems %></batch>
 
-            Return listsProxy.ExecuteSharePointUpdateBatch(listName, batchXml, 250)
+            Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, 250)
         End Using
 
     End Function
 
-    ''' <summary>
-    ''' Create a subfolder on a SharePoint site
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">List to create a subfolder in</param>
-    ''' <param name="folderList">List of foldernames to create</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Shared Function CreateFolders(ByVal sharepointUrl As String, ByVal listName As String, ByVal folderList As IEnumerable(Of String)) As XElement
-
-        Return CreateFolders(New Uri(sharepointUrl), listName, folderList)
-
-    End Function
 
     ''' <summary>
     ''' Update list items on a SharePoint List
@@ -223,13 +153,15 @@ Public NotInheritable Class ListServiceUtility
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Shared Function UpdateListItems( _
-            ByVal sharepointUri As Uri, ByVal listName As String, _
+            ByVal sharepointUri As Uri, ByVal listName As String, ByVal viewName As String, _
             ByVal fieldValueList As IEnumerable(Of Dictionary(Of String, String)), ByVal batchSize As Short) As XElement
 
         Using listsProxy = New ListsAdapter(sharepointUri)
 
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
+
             ' Get the public fields
-            Dim fields = listsProxy.GetSharePointFields(listName)
+            Dim fields = listsProxy.GetSharePointFields(listName, viewId)
             Dim activeFields = From f In fields _
                                Where f.IsHidden = False And f.IsReadOnly = False
 
@@ -261,25 +193,11 @@ Public NotInheritable Class ListServiceUtility
 
             ' Join them together for processing
             Dim batchXml = <batch><%= batchInsertItems.Union(batchUpdateItems) %></batch>
-            Return listsProxy.ExecuteSharePointUpdateBatch(listName, batchXml, batchSize)
+            Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, batchSize)
         End Using
 
     End Function
 
-    ''' <summary>
-    ''' Update list items on a SharePoint List
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Name of List to update </param>
-    ''' <param name="fieldValueList">List of Items to update. Each item is a Dictionary representing the fields to 
-    ''' modify. If updating an existing row, an ID MUST be within the list, or else a new row will be created.</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Shared Function UpdateListItems(ByVal sharepointUrl As String, ByVal listName As String, ByVal fieldValueList As IEnumerable(Of Dictionary(Of String, String)), ByVal batchSize As Short) As XElement
-
-        Return UpdateListItems(New Uri(sharepointUrl), listName, fieldValueList, batchSize)
-
-    End Function
 
     ''' <summary>
     ''' Create a batch XML structure to delete items from SharePoint
@@ -289,9 +207,11 @@ Public NotInheritable Class ListServiceUtility
     ''' <param name="idList">List of sharepoitn Row IDs to delete</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Shared Function DeleteListItems(ByVal sharepointUri As Uri, ByVal listName As String, ByVal idList As IEnumerable(Of String)) As XElement
+    Public Shared Function DeleteListItems(ByVal sharepointUri As Uri, ByVal listName As String, ByVal viewName As String, ByVal idList As IEnumerable(Of String)) As XElement
 
         Using listsProxy = New ListsAdapter(sharepointUri)
+
+            Dim viewId As String = listsProxy.LookupViewName(listName, viewName)
 
             ' Build up the linq query for the deletes
             Dim batchDelete = From row In idList _
@@ -302,24 +222,11 @@ Public NotInheritable Class ListServiceUtility
 
             ' Join them together for processing
             Dim batchXml = <batch><%= batchDelete %></batch>
-            Return listsProxy.ExecuteSharePointUpdateBatch(listName, batchXml, 250)
+            Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, 250)
         End Using
 
     End Function
 
-    ''' <summary>
-    ''' Create a batch XML structure to delete items from SharePoint
-    ''' </summary>
-    ''' <param name="sharepointUrl">URL to the SharePoint site or subsite that has the list</param>
-    ''' <param name="listName">Name of list to delete items from</param>
-    ''' <param name="idList">List of sharepoitn Row IDs to delete</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Public Shared Function DeleteListItems(ByVal sharepointUrl As String, ByVal listName As String, ByVal idList As IEnumerable(Of String)) As XElement
-
-        Return DeleteListItems(New Uri(sharepointUrl), listName, idList)
-
-    End Function
 
     ''' <summary>
     ''' Returns the URI pointing to the SharePoint List path (not the ASMX)
@@ -332,7 +239,7 @@ Public NotInheritable Class ListServiceUtility
 
         Dim targetUri As String = _
             sharepointUri.Scheme & Uri.SchemeDelimiter & sharepointUri.Authority & _
-            String.Join("", sharepointUri.Segments.Take(sharepointUri.Segments.Length - 2).ToArray()) & listName & "/"
+            String.Join("", sharepointUri.Segments.Take(sharepointUri.Segments.Length - 2).ToArray()) & listName.Trim() & "/"
 
         Return New Uri(targetUri)
 

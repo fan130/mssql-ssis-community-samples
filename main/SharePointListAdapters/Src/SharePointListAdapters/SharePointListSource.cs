@@ -16,7 +16,7 @@ using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirt
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Source",
-		CurrentVersion = 1,
+		CurrentVersion = 2,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointSource.ico",
 		Description = "Extract data from SharePoint lists",
 		ComponentType = ComponentType.SourceAdapter)]
@@ -26,6 +26,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const int CURRENT_PROP_TOTAL = 6;
         private const string C_SHAREPOINTSITEURL = "SiteUrl";
         private const string C_SHAREPOINTLISTNAME = "SiteListName";
+        private const string C_SHAREPOINTLISTVIEWNAME = "SiteListViewName";
         private const string C_CAMLQUERY = "CamlQuery";
         private const string C_BATCHSIZE = "BatchSize";
         private const string C_ISRECURSIVE = "IsRecursive";
@@ -56,6 +57,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             sharepointListName.Name = C_SHAREPOINTLISTNAME;
             sharepointListName.Description = "Name of the SharePoint list to load data from.";
             sharepointListName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+
+            var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
+            sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
+            sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
+            sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
 
             var sharepointCamlQuery = ComponentMetaData.CustomPropertyCollection.New();
             sharepointCamlQuery.Name = C_CAMLQUERY;
@@ -187,12 +193,12 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             string sharepointUrl = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value;
             string listName = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value;
-
+            string viewName = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value;
             // Get the column information from SharePoint
             List<SharePointUtility.DataObject.ColumnData> accessibleColumns = null;
             try
             {
-                accessibleColumns = GetAccessibleSharePointColumns(sharepointUrl, listName);
+                accessibleColumns = GetAccessibleSharePointColumns(sharepointUrl, listName, viewName);
             }
             catch (ApplicationException)
             {
@@ -267,7 +273,8 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             {
                 CreateExternalMetaDataColumns(output,
                     (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value,
-                    (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value);
+                    (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value,
+                    (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value);
             }
         }
 
@@ -277,10 +284,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
         /// <returns></returns>
-        private static List<SharePointUtility.DataObject.ColumnData> GetAccessibleSharePointColumns(string sharepointUrl, string listName)
+        private static List<SharePointUtility.DataObject.ColumnData> GetAccessibleSharePointColumns(string sharepointUrl, string listName, string viewName)
         {
             List<SharePointUtility.DataObject.ColumnData> columnList =
-                ListServiceUtility.GetFields(sharepointUrl, listName);
+                ListServiceUtility.GetFields(new Uri(sharepointUrl), listName, viewName);
 
             // Pull out the ID Field because we want this to be first in the list, and the other columns
             // will keep their order that SharePoint sends them.
@@ -302,7 +309,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// </summary>
         /// <param name="output"></param>
         /// <param name="p"></param>
-        private static void CreateExternalMetaDataColumns(IDTSOutput output, string sharepointUrl, string listName)
+        private static void CreateExternalMetaDataColumns(IDTSOutput output, string sharepointUrl, string listName, string viewName)
         {
             // No need to load if the Url is bad.
             if ((sharepointUrl == null) || (sharepointUrl.Length == 0))
@@ -315,7 +322,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             try
             {
                 List<SharePointUtility.DataObject.ColumnData> accessibleColumns =
-                    GetAccessibleSharePointColumns(sharepointUrl, listName);
+                    GetAccessibleSharePointColumns(sharepointUrl, listName, viewName);
 
                 foreach (var column in accessibleColumns)
                 {
@@ -326,34 +333,31 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     dtsColumnMeta.Length = 0;
                     dtsColumnMeta.Precision = 0;
                     dtsColumnMeta.Scale = 0;
-                    switch (column.SharePointType)
+                    if ("Boolean|AllDayEvent|Attachments|CrossProjectLink|Recurrence".Contains(column.SharePointType))
                     {
-                        case "Boolean":
-                        case "AllDayEvent":
-                        case "Attachments":
-                        case "CrossProjectLink":
-                        case "Recurrence":
-                            dtsColumnMeta.DataType = DataType.DT_BOOL;
-                            break;
-                        case "DateTime":
-                            dtsColumnMeta.DataType = DataType.DT_DBTIMESTAMP;
-                            break;
-                        case "Number":
-                        case "Currency":
-                            // Max = 100,000,000,000.00000
-                            dtsColumnMeta.DataType = DataType.DT_R8;
-                            break;
-                        case "Counter":
-                        case "Integer":
-                            dtsColumnMeta.DataType = DataType.DT_I4;
-                            break;
-                        case "Guid":
-                            dtsColumnMeta.DataType = DataType.DT_GUID;
-                            break;
-                        default:
-                            dtsColumnMeta.DataType = DataType.DT_WSTR;
-                            dtsColumnMeta.Length = column.MaxLength == -1 ? 3999 : column.MaxLength;
-                            break;
+                        dtsColumnMeta.DataType = DataType.DT_BOOL;
+                    }
+                    else if (column.SharePointType == "DateTime")
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_DBTIMESTAMP;
+                    }
+                    else if ("Number|Currency".Contains(column.SharePointType))
+                    {
+                        // Max = 100,000,000,000.00000
+                        dtsColumnMeta.DataType = DataType.DT_R8;
+                    }
+                    else if ("Counter|Integer".Contains(column.SharePointType))
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_I4;
+                    }
+                    else if ("Guid".Contains(column.SharePointType))
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_GUID;
+                    }
+                    else
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_WSTR;
+                        dtsColumnMeta.Length = column.MaxLength == -1 ? 3999 : column.MaxLength;
                     }
 
                     IDTSCustomProperty fieldNameMeta = dtsColumnMeta.CustomPropertyCollection.New();
@@ -393,6 +397,13 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         public override void PerformUpgrade(int pipelineVersion)
         {
             ComponentMetaData.CustomPropertyCollection["UserComponentTypeName"].Value = this.GetType().AssemblyQualifiedName;
+            if (pipelineVersion == 1)
+            {
+                var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
+                sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
+                sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
+                sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+            }
         }
 
 
@@ -439,6 +450,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         {
             string sharepointUrl = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value;
             string sharepointList = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value;
+            string sharepointListView = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value;
             XElement camlQuery = XElement.Parse((string)ComponentMetaData.CustomPropertyCollection[C_CAMLQUERY].Value);
             short batchSize = (short)ComponentMetaData.CustomPropertyCollection[C_BATCHSIZE].Value;
             Enums.TrueFalseValue isRecursive = (Enums.TrueFalseValue)ComponentMetaData.CustomPropertyCollection[C_ISRECURSIVE].Value;
@@ -454,7 +466,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
             var listData = SharePointUtility.ListServiceUtility.GetListItemData(
-                new Uri(sharepointUrl), sharepointList, fieldNames, camlQuery,
+                new Uri(sharepointUrl), sharepointList, sharepointListView, fieldNames, camlQuery,
                 isRecursive == Enums.TrueFalseValue.True ? true : false, batchSize);
             timer.Stop();
             bool fireAgain = false;

@@ -15,7 +15,7 @@ using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirt
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Destination",
-		CurrentVersion = 1,
+		CurrentVersion = 2,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointDestination.ico",
 		Description = "Add, update, or delete data in SharePoint lists",
 		ComponentType = ComponentType.DestinationAdapter)]
@@ -24,6 +24,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const int DTS_PIPELINE_CTR_ROWSWRITTEN = 103;
         private const string C_SHAREPOINTSITEURL = "SiteUrl";
         private const string C_SHAREPOINTLISTNAME = "SiteListName";
+        private const string C_SHAREPOINTLISTVIEWNAME = "SiteListViewName";
         private const string C_BATCHSIZE = "BatchSize";
         private const string C_BATCHTYPE = "BatchType";
         private Dictionary<string, int> _bufferLookup;
@@ -53,6 +54,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             sharepointListName.Name = C_SHAREPOINTLISTNAME;
             sharepointListName.Description = "Name of the SharePoint list to load data from.";
             sharepointUrl.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+
+            var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
+            sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
+            sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
+            sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
 
             var batchSize = ComponentMetaData.CustomPropertyCollection.New();
             batchSize.Name = C_BATCHSIZE;
@@ -102,7 +108,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             {
                 if (ComponentMetaData.InputCollection.Count > 0)
                 {
-                    foreach (IDTSInputColumnCollection collection in ComponentMetaData.InputCollection)
+                    foreach (IDTSInputColumnCollection collection in ComponentMetaData.InputCollection.AsQueryable())
                     {
                         collection.RemoveAll();
                     }
@@ -180,12 +186,13 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             // Check the input columns and see if they are the same as the # of columns in the selected list
             string sharepointUrl = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value;
             string listName = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value;
+            string viewName = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value;
 
             // Get the column information from SharePoint
             List<SharePointUtility.DataObject.ColumnData> accessibleColumns = null;
             try
             {
-                accessibleColumns = GetAccessibleSharePointColumns(sharepointUrl, listName);
+                accessibleColumns = GetAccessibleSharePointColumns(sharepointUrl, listName, viewName);
             }
             catch (SharePointUnhandledException)
             {
@@ -307,7 +314,8 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 {
                     CreateExternalMetaDataColumns(input,
                         (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value,
-                        (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value);
+                        (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value,
+                        (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value);
                 }
             }
         }
@@ -319,10 +327,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="listName"></param>
         /// <returns></returns>
         private static List<SharePointUtility.DataObject.ColumnData>
-            GetAccessibleSharePointColumns(string sharepointUrl, string listName)
+            GetAccessibleSharePointColumns(string sharepointUrl, string listName, string viewName)
         {
             List<SharePointUtility.DataObject.ColumnData> columnList =
-                ListServiceUtility.GetFields(sharepointUrl, listName);
+                ListServiceUtility.GetFields(new Uri(sharepointUrl), listName, viewName);
 
             // Pull out the ID Field because we want this to be first in the list, and the other columns
             // will keep their order that SharePoint sends them.
@@ -345,7 +353,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="input"></param>
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
-        private static void CreateExternalMetaDataColumns(IDTSInput input, string sharepointUrl, string listName)
+        private static void CreateExternalMetaDataColumns(IDTSInput input, string sharepointUrl, string listName, string viewName)
         {
             // No need to load if the Url is bad.
             if ((sharepointUrl == null) || (sharepointUrl.Length == 0))
@@ -360,7 +368,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             try
             {
                 List<SharePointUtility.DataObject.ColumnData> accessibleColumns =
-                    GetAccessibleSharePointColumns(sharepointUrl, listName);
+                    GetAccessibleSharePointColumns(sharepointUrl, listName, viewName);
 
                 foreach (var column in accessibleColumns)
                 {
@@ -371,33 +379,31 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     dtsColumnMeta.Length = 0;
                     dtsColumnMeta.Precision = 0;
                     dtsColumnMeta.Scale = 0;
-                    switch (column.SharePointType)
+                    if ("Boolean|AllDayEvent|Attachments|CrossProjectLink|Recurrence".Contains(column.SharePointType))
                     {
-                        case "Boolean":
-                        case "AllDayEvent":
-                        case "Attachments":
-                        case "CrossProjectLink":
-                        case "Recurrence":
-                            dtsColumnMeta.DataType = DataType.DT_BOOL;
-                            break;
-                        case "DateTime":
-                            dtsColumnMeta.DataType = DataType.DT_DBTIMESTAMP;
-                            break;
-                        case "Number":
-                        case "Currency":
-                            dtsColumnMeta.DataType = DataType.DT_R8;
-                            break;
-                        case "Counter":
-                        case "Integer":
-                            dtsColumnMeta.DataType = DataType.DT_I4;
-                            break;
-                        case "Guid":
-                            dtsColumnMeta.DataType = DataType.DT_GUID;
-                            break;
-                        default:
-                            dtsColumnMeta.DataType = DataType.DT_WSTR;
-                            dtsColumnMeta.Length = column.MaxLength == -1 ? 3999 : column.MaxLength;
-                            break;
+                        dtsColumnMeta.DataType = DataType.DT_BOOL;
+                    }
+                    else if (column.SharePointType == "DateTime")
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_DBTIMESTAMP;
+                    }
+                    else if ("Number|Currency".Contains(column.SharePointType))
+                    {
+                        // Max = 100,000,000,000.00000
+                        dtsColumnMeta.DataType = DataType.DT_R8;
+                    }
+                    else if ("Counter|Integer".Contains(column.SharePointType))
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_I4;
+                    }
+                    else if ("Guid".Contains(column.SharePointType))
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_GUID;
+                    }
+                    else
+                    {
+                        dtsColumnMeta.DataType = DataType.DT_WSTR;
+                        dtsColumnMeta.Length = column.MaxLength == -1 ? 3999 : column.MaxLength;
                     }
 
                     var fieldNameMeta = dtsColumnMeta.CustomPropertyCollection.New();
@@ -432,6 +438,13 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         public override void PerformUpgrade(int pipelineVersion)
         {
             ComponentMetaData.CustomPropertyCollection["UserComponentTypeName"].Value = this.GetType().AssemblyQualifiedName;
+            if (pipelineVersion == 1)
+            {
+                var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
+                sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
+                sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
+                sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+            }
         }
 
         #endregion
@@ -476,6 +489,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         {
             string sharepointUrl = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value;
             string sharepointList = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value;
+            string sharepointListView = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value;
             short batchSize = (short)ComponentMetaData.CustomPropertyCollection[C_BATCHSIZE].Value;
             Enums.BatchType batchType = (Enums.BatchType)ComponentMetaData.CustomPropertyCollection[C_BATCHTYPE].Value;
 
@@ -491,16 +505,28 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                         switch (_bufferLookupDataType[fieldName])
                         {
                             case DataType.DT_WSTR:
-                                rowData.Add(fieldName, buffer.GetString(_bufferLookup[fieldName]));
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetString(_bufferLookup[fieldName]));
                                 break;
                             case DataType.DT_R8:
-                                rowData.Add(fieldName, buffer.GetDouble(_bufferLookup[fieldName]).ToString());
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetDouble(_bufferLookup[fieldName]).ToString());
                                 break;
                             case DataType.DT_I4:
-                                rowData.Add(fieldName, buffer.GetInt32(_bufferLookup[fieldName]).ToString());
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetInt32(_bufferLookup[fieldName]).ToString());
                                 break;
                             case DataType.DT_I1:
-                                rowData.Add(fieldName, buffer.GetBoolean(_bufferLookup[fieldName]).ToString());
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetBoolean(_bufferLookup[fieldName]).ToString());
                                 break;
                             case DataType.DT_GUID:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
@@ -519,78 +545,86 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     dataQueue.Add(rowData);
                 }
 
-
-                System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
-                timer.Start();
-                System.Xml.Linq.XElement resultData;
-                if (batchType == Enums.BatchType.Modification)
+                bool fireAgain = false;
+                if (dataQueue.Count() > 0)
                 {
-                    // Perform the update
-                    resultData = SharePointUtility.ListServiceUtility.UpdateListItems(
-                        new Uri(sharepointUrl), sharepointList, dataQueue, batchSize);
+                    System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+                    timer.Start();
+                    System.Xml.Linq.XElement resultData;
+                    if (batchType == Enums.BatchType.Modification)
+                    {
+                        // Perform the update
+                        resultData = SharePointUtility.ListServiceUtility.UpdateListItems(
+                            new Uri(sharepointUrl), sharepointList, sharepointListView, dataQueue, batchSize);
 
+                    }
+                    else
+                    {
+                        // Get the IDs read from the buffer
+                        var idList = from data in dataQueue
+                                     where data["ID"].Trim().Length > 0
+                                     select data["ID"];
+
+                        // Delete the list items with IDs
+                        resultData = SharePointUtility.ListServiceUtility.DeleteListItems(
+                            new Uri(sharepointUrl), sharepointList, sharepointListView, idList);
+                    }
+                    timer.Stop();
+                    var errorRows = from result in resultData.Descendants("errorCode")
+                                    select result.Parent;
+
+                    int successRowsWritten = resultData.Elements().Count() - errorRows.Count();
+                    string infoMsg = string.Format(
+                        "Affected {0} records in list '{1}' at '{2}'. Elapsed time is {3}ms",
+                        successRowsWritten,
+                        sharepointList,
+                        sharepointUrl,
+                        timer.ElapsedMilliseconds);
+                    ComponentMetaData.FireInformation(0, ComponentMetaData.Name, infoMsg, "", 0, ref fireAgain);
+                    ComponentMetaData.IncrementPipelinePerfCounter(
+                        DTS_PIPELINE_CTR_ROWSWRITTEN, (uint)successRowsWritten);
+
+                    // Shovel any error rows to the error flow
+                    bool cancel;
+                    int errorIter = 0;
+                    foreach (var row in errorRows)
+                    {
+                        // Do not flood the error log.
+                        errorIter++;
+                        if (errorIter > 10)
+                        {
+                            ComponentMetaData.FireError(0,
+                                ComponentMetaData.Name,
+                                "Total of " + errorRows.Count().ToString() + ", only  showing first 10.", "", 0, out cancel);
+                            return;
+
+                        }
+
+                        string idString = "";
+                        XAttribute attrib = row.Element("row").Attribute("ID");
+                        if (attrib != null)
+                            idString = "(SP ID=" + attrib.Value + ")";
+
+                        string errorString = string.Format(
+                            "Error on row {0}: {1} - {2} {3}",
+                            row.Attribute("ID"),
+                            row.Element("errorCode").Value,
+                            row.Element("errorDescription").Value,
+                            idString);
+
+                        ComponentMetaData.FireError(0, ComponentMetaData.Name, errorString, "", 0, out cancel);
+
+                        // Need to throw an exception, or else this step's box is green (should be red), even though the flow
+                        // is marked as failure regardless.
+                        throw new PipelineProcessException("Errors detected in this component - see SSIS Errors");
+                    }
                 }
                 else
                 {
-                    // Get the IDs read from the buffer
-                    var idList = from data in dataQueue
-                                 where data["ID"].Trim().Length > 0
-                                 select data["ID"];
-
-                    // Delete the list items with IDs
-                    resultData = SharePointUtility.ListServiceUtility.DeleteListItems(
-                        new Uri(sharepointUrl), sharepointList, idList);
+                    ComponentMetaData.FireInformation(0, ComponentMetaData.Name,
+                        "No rows found to update in destination.", "", 0, ref fireAgain);
                 }
-                timer.Stop();
-                var errorRows = from result in resultData.Descendants("errorCode")
-                                select result.Parent;
 
-                bool fireAgain = false;
-                int successRowsWritten = resultData.Elements().Count() - errorRows.Count();
-                string infoMsg = string.Format(
-                    "Affected {0} records in list '{1}' at '{2}'. Elapsed time is {3}ms",
-                    successRowsWritten,
-                    sharepointList,
-                    sharepointUrl,
-                    timer.ElapsedMilliseconds);
-                ComponentMetaData.FireInformation(0, ComponentMetaData.Name, infoMsg, "", 0, ref fireAgain);
-                ComponentMetaData.IncrementPipelinePerfCounter(
-                    DTS_PIPELINE_CTR_ROWSWRITTEN, (uint)successRowsWritten);
-
-                // Shovel any error rows to the error flow
-                bool cancel;
-                int errorIter = 0;
-                foreach (var row in errorRows)
-                {
-                    // Do not flood the error log.
-                    errorIter++;
-                    if (errorIter > 10)
-                    {
-                        ComponentMetaData.FireError(0,
-                            ComponentMetaData.Name,
-                            "Total of " + errorRows.Count().ToString() + ", only  showing first 10.", "", 0, out cancel);
-                        return;
-
-                    }
-
-                    string idString = "";
-                    XAttribute attrib = row.Element("row").Attribute("ID");
-                    if (attrib != null)
-                        idString = "(SP ID=" + attrib.Value + ")";
-
-                    string errorString = string.Format(
-                        "Error on row {0}: {1} - {2} {3}",
-                        row.Attribute("ID"),
-                        row.Element("errorCode").Value,
-                        row.Element("errorDescription").Value,
-                        idString);
-
-                    ComponentMetaData.FireError(0, ComponentMetaData.Name, errorString, "", 0, out cancel);
-
-                    // Need to throw an exception, or else this step's box is green (should be red), even though the flow
-                    // is marked as failure regardless.
-                    throw new PipelineProcessException("Errors detected in this component - see SSIS Errors");
-                }
             }
 
 
