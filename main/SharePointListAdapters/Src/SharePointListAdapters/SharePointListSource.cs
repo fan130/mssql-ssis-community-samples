@@ -13,6 +13,13 @@ using IDTSOutputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutputColu
 using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty100;
 using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn100;
 
+//using IDTSInputColumnCollection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumnCollection90;
+//using IDTSExternalMetadataColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSExternalMetadataColumn90;
+//using IDTSOutput = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutput90;
+//using IDTSOutputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutputColumn90;
+//using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty90;
+//using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn90;
+
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Source",
@@ -378,8 +385,6 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     fieldName.Description = fieldNameMeta.Description;
                     fieldName.Value = fieldNameMeta.Value;
 
-                    // Create a link from the meta to the new output column
-                    dtsColumnMeta.MappedColumnID = dtsColumn.ID;
                 }
             }
             catch (ApplicationException)
