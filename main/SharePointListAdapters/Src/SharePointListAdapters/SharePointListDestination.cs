@@ -59,7 +59,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             var sharepointListName = ComponentMetaData.CustomPropertyCollection.New();
             sharepointListName.Name = C_SHAREPOINTLISTNAME;
             sharepointListName.Description = "Name of the SharePoint list to load data from.";
-            sharepointUrl.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+            sharepointListName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
 
             var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
             sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
