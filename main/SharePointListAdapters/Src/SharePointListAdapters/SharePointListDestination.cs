@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
+using System.Text;
 using Microsoft.SqlServer.Dts.Pipeline;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Runtime.Wrapper;
@@ -10,18 +12,20 @@ using IDTSInputColumnCollection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSI
 using IDTSExternalMetadataColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSExternalMetadataColumn100;
 using IDTSInput = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInput100;
 using IDTSInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumn100;
+using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty100;
 using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn100;
 
 //using IDTSInputColumnCollection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumnCollection90;
 //using IDTSExternalMetadataColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSExternalMetadataColumn90;
 //using IDTSInput = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInput90;
 //using IDTSInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumn90;
+//using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty90;
 //using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn90;
 
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Destination",
-		CurrentVersion = 2,
+		CurrentVersion = 3,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointDestination.ico",
 		Description = "Add, update, or delete data in SharePoint lists",
 		ComponentType = ComponentType.DestinationAdapter)]
@@ -31,10 +35,12 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const string C_SHAREPOINTSITEURL = "SiteUrl";
         private const string C_SHAREPOINTLISTNAME = "SiteListName";
         private const string C_SHAREPOINTLISTVIEWNAME = "SiteListViewName";
+        private const string C_SHAREPOINTCULTURE = "SharePointCulture";
         private const string C_BATCHSIZE = "BatchSize";
         private const string C_BATCHTYPE = "BatchType";
         private Dictionary<string, int> _bufferLookup;
         private Dictionary<string, DataType> _bufferLookupDataType;
+        private CultureInfo _culture;
 
         #region Design Time Methods
         /// <summary>
@@ -65,6 +71,12 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
             sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
             sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+
+            var sharepointCulture = ComponentMetaData.CustomPropertyCollection.New();
+            sharepointCulture.Name = C_SHAREPOINTCULTURE;
+            sharepointCulture.Description = "Culture to use when communicating with remote SharePoint Server (en-US).";
+            sharepointCulture.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+            sharepointCulture.Value = "en-US";
 
             var batchSize = ComponentMetaData.CustomPropertyCollection.New();
             batchSize.Name = C_BATCHSIZE;
@@ -110,6 +122,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 return DTSValidationStatus.VS_ISCORRUPT;
             }
 
+
             if (ComponentMetaData.AreInputColumnsValid == false)
             {
                 if (ComponentMetaData.InputCollection.Count > 0)
@@ -122,9 +135,33 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 return DTSValidationStatus.VS_NEEDSNEWMETADATA;
             }
 
+            if ((ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTCULTURE].Value == null) ||
+                (((string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTCULTURE].Value).Length == 0))
+            {
+                ComponentMetaData.FireError(0, ComponentMetaData.Name,
+                    "A culture for the target SharePoint server must be specified.",
+                    "", 0, out canCancel);
+            }
+            else
+            {
+                string cultureCode = (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTCULTURE].Value;
+                var cultureList = CultureInfo.GetCultures(CultureTypes.FrameworkCultures);
+                _culture = (from c in cultureList
+                            where c.Name.ToUpper(CultureInfo.InvariantCulture) == cultureCode.ToUpper(CultureInfo.InvariantCulture)
+                            select c).Single();
+                if (_culture == null)
+                {
+                    // Column names do not match, request new data.
+                    ComponentMetaData.FireError(0, ComponentMetaData.Name,
+                        "Culture '" + cultureCode + "' is not a recognized MS Framework Language Culture (ex: en-US).",
+                        "", 0, out canCancel);
+                }
+            }
+
             if ((ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value == null) ||
                 (((string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value).Length == 0))
             {
+
                 ComponentMetaData.FireError(0, ComponentMetaData.Name,
                     "SharePoint URL has not been set.",
                     "", 0, out canCancel);
@@ -208,15 +245,6 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 return DTSValidationStatus.VS_ISBROKEN;
             }
 
-            // Check the output columns and see if they are the same as the 
-            // # of columns in the selected list
-            if (accessibleColumns.Count !=
-                ComponentMetaData.InputCollection[0].ExternalMetadataColumnCollection.Count)
-            {
-                // Check to see if the columns match up
-                return DTSValidationStatus.VS_NEEDSNEWMETADATA;
-            }
-
             // Get the field names of the columns
             var fieldNames = (from col in ComponentMetaData.InputCollection[0].ExternalMetadataColumnCollection.Cast<IDTSExternalMetadataColumn>()
                               select (string)col.CustomPropertyCollection["Id"].Value);
@@ -224,7 +252,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             // Join them together and see if we get the full sharepoint column list. 
             if ((from spCol in accessibleColumns
                  join inputCol in fieldNames on spCol.Name equals inputCol
-                 select spCol).Count() != accessibleColumns.Count)
+                 select spCol).Count() != fieldNames.Count())
             {
                 // Column names do not match, request new data.
                 return DTSValidationStatus.VS_NEEDSNEWMETADATA;
@@ -408,8 +436,16 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     }
                     else
                     {
-                        dtsColumnMeta.DataType = DataType.DT_WSTR;
-                        dtsColumnMeta.Length = column.MaxLength == -1 ? 3999 : column.MaxLength;
+                        if (column.MaxLength == -1)
+                        {
+                            dtsColumnMeta.DataType = DataType.DT_TEXT;
+                            dtsColumnMeta.Length = 2147483647;
+                        }
+                        else
+                        {
+                            dtsColumnMeta.DataType = DataType.DT_WSTR;
+                            dtsColumnMeta.Length = column.MaxLength;
+                        }
                     }
 
                     var fieldNameMeta = dtsColumnMeta.CustomPropertyCollection.New();
@@ -440,17 +476,45 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <summary>
         /// Enables updating of an existing version of a component to a newer version
         /// </summary>
-        /// <param name="pipelineVersion"></param>
+        /// <param name="pipelineVersion">Seems to always be 0</param>
         public override void PerformUpgrade(int pipelineVersion)
         {
             ComponentMetaData.CustomPropertyCollection["UserComponentTypeName"].Value = this.GetType().AssemblyQualifiedName;
-            if (pipelineVersion == 1)
+
+            var sharepointListViewName = FindCustomProperty(C_SHAREPOINTLISTVIEWNAME);
+            if (sharepointListViewName == null)
             {
-                var sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
+                sharepointListViewName = ComponentMetaData.CustomPropertyCollection.New();
                 sharepointListViewName.Name = C_SHAREPOINTLISTVIEWNAME;
                 sharepointListViewName.Description = "Name of the view within SharePoint list to load data from.";
                 sharepointListViewName.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
             }
+
+            var sharepointCulture = FindCustomProperty(C_SHAREPOINTCULTURE);
+            if (sharepointCulture == null)
+            {
+                sharepointCulture = ComponentMetaData.CustomPropertyCollection.New();
+                sharepointCulture.Name = C_SHAREPOINTCULTURE;
+                sharepointCulture.Description = "Culture to use when communicating with remote SharePoint Server (en-US).";
+                sharepointCulture.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
+                sharepointCulture.Value = "en-US";
+            }
+        }
+
+        /// <summary>
+        /// Finds a property by name if it exists
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private IDTSCustomProperty100 FindCustomProperty(string name)
+        {
+            foreach (IDTSCustomProperty100 property in ComponentMetaData.CustomPropertyCollection)
+            {
+                if (property.Name.ToUpper() == name.ToUpper())
+                    return property;
+            }
+            return null;
+
         }
 
         #endregion
@@ -482,7 +546,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                      select new
                                      {
                                          Name = (string)metaCol.CustomPropertyCollection["Id"].Value,
-                                         DataType = metaCol.DataType
+                                         DataType = col.DataType
                                      }).ToDictionary(a => a.Name, a => a.DataType);
         }
 
@@ -510,29 +574,62 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     {
                         switch (_bufferLookupDataType[fieldName])
                         {
+                            case DataType.DT_STR:
                             case DataType.DT_WSTR:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, string.Empty);
                                 else
                                     rowData.Add(fieldName, buffer.GetString(_bufferLookup[fieldName]));
                                 break;
+                            case DataType.DT_NTEXT:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                {
+                                    int colDataLength = (int)buffer.GetBlobLength(_bufferLookup[fieldName]);
+                                    byte[] stringData = buffer.GetBlobData(_bufferLookup[fieldName], 0, colDataLength);
+                                    rowData.Add(fieldName, Encoding.Unicode.GetString(stringData));
+                                }
+                                break;
+                            case DataType.DT_R4:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetSingle(_bufferLookup[fieldName]).ToString(_culture));
+                                break;
                             case DataType.DT_R8:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, string.Empty);
                                 else
-                                    rowData.Add(fieldName, buffer.GetDouble(_bufferLookup[fieldName]).ToString());
+                                    rowData.Add(fieldName, buffer.GetDouble(_bufferLookup[fieldName]).ToString(_culture));
                                 break;
-                            case DataType.DT_I4:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
-                                    rowData.Add(fieldName, buffer.GetInt32(_bufferLookup[fieldName]).ToString());
-                                break;
+                            case DataType.DT_UI1:
                             case DataType.DT_I1:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, string.Empty);
                                 else
-                                    rowData.Add(fieldName, buffer.GetBoolean(_bufferLookup[fieldName]).ToString());
+                                    rowData.Add(fieldName, buffer.GetBoolean(_bufferLookup[fieldName]).ToString(_culture));
+                                break;
+                            case DataType.DT_UI2:
+                            case DataType.DT_I2:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetInt16(_bufferLookup[fieldName]).ToString(_culture));
+                                break;
+                            case DataType.DT_UI4:
+                            case DataType.DT_I4:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetInt32(_bufferLookup[fieldName]).ToString(_culture));
+                                break;
+                            case DataType.DT_UI8:
+                            case DataType.DT_I8:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetInt64(_bufferLookup[fieldName]).ToString(_culture));
                                 break;
                             case DataType.DT_GUID:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
@@ -544,7 +641,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, String.Empty);
                                 else
-                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("yyy-MM-dd hh:mm:ss"));
+                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("u"));
                                 break;
                         }
                     }
@@ -580,7 +677,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                     select result.Parent;
 
                     int successRowsWritten = resultData.Elements().Count() - errorRows.Count();
-                    string infoMsg = string.Format(
+                    string infoMsg = string.Format(CultureInfo.InvariantCulture,
                         "Affected {0} records in list '{1}' at '{2}'. Elapsed time is {3}ms",
                         successRowsWritten,
                         sharepointList,
@@ -601,7 +698,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                         {
                             ComponentMetaData.FireError(0,
                                 ComponentMetaData.Name,
-                                "Total of " + errorRows.Count().ToString() + ", only  showing first 10.", "", 0, out cancel);
+                                "Total of " + errorRows.Count().ToString(_culture) + ", only  showing first 10.", "", 0, out cancel);
                             return;
 
                         }
@@ -611,7 +708,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                         if (attrib != null)
                             idString = "(SP ID=" + attrib.Value + ")";
 
-                        string errorString = string.Format(
+                        string errorString = string.Format(CultureInfo.InvariantCulture,
                             "Error on row {0}: {1} - {2} {3}",
                             row.Attribute("ID"),
                             row.Element("errorCode").Value,
@@ -632,11 +729,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 }
 
             }
-
-
         }
-
-
         #endregion
     }
 }

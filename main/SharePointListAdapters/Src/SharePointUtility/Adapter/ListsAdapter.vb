@@ -59,7 +59,13 @@ Namespace Adapter
 
             ' Send credentials and adjust the buffer sizes (SharePoint can send big packets of data)
             binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm
-            binding.MaxReceivedMessageSize = 1000000
+            binding.MaxReceivedMessageSize = 2147483647
+            binding.ReaderQuotas.MaxBytesPerRead = 2147483647
+            binding.ReaderQuotas.MaxArrayLength = 2147483647
+            binding.ReaderQuotas.MaxDepth = 2147483647
+            binding.ReaderQuotas.MaxNameTableCharCount = 2147483647
+            binding.ReaderQuotas.MaxStringContentLength = 2147483647
+
             binding.ReceiveTimeout = New TimeSpan(0, 10, 0)
 
             ' Create the client with the given settings
