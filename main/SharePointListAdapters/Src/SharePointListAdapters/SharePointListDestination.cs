@@ -25,7 +25,7 @@ using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirt
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Destination",
-		CurrentVersion = 3,
+		CurrentVersion = 5,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointDestination.ico",
 		Description = "Add, update, or delete data in SharePoint lists",
 		ComponentType = ComponentType.DestinationAdapter)]
@@ -40,6 +40,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const string C_BATCHTYPE = "BatchType";
         private Dictionary<string, int> _bufferLookup;
         private Dictionary<string, DataType> _bufferLookupDataType;
+        private Dictionary<string, string> _existingColumnData;
         private CultureInfo _culture;
 
         #region Design Time Methods
@@ -125,13 +126,6 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             if (ComponentMetaData.AreInputColumnsValid == false)
             {
-                if (ComponentMetaData.InputCollection.Count > 0)
-                {
-                    foreach (IDTSInputColumnCollection collection in ComponentMetaData.InputCollection.AsQueryable())
-                    {
-                        collection.RemoveAll();
-                    }
-                }
                 return DTSValidationStatus.VS_NEEDSNEWMETADATA;
             }
 
@@ -303,6 +297,18 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         {
             if (ComponentMetaData.InputCollection.Count > 0)
             {
+                var input = ComponentMetaData.InputCollection[0];
+
+                // Capture the existing column names and detail data before data is re-initialized.
+                _existingColumnData =
+                    (from metaCol in
+                         input.ExternalMetadataColumnCollection.Cast<IDTSExternalMetadataColumn>()
+                     select new
+                     {
+                         ColumnName = (string)metaCol.Name,
+                         SpColName = (string)metaCol.CustomPropertyCollection["Id"].Value
+                     }).ToDictionary(a => a.SpColName, a => a.ColumnName);
+
                 // Reset the input columns
                 ComponentMetaData.InputCollection[0].InputColumnCollection.RemoveAll();
 
@@ -328,13 +334,13 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             // Load meta information and map to columns
             input.ExternalMetadataColumnCollection.RemoveAll();
-            LoadDataSourceInformation();
+            LoadDataSourceInformation(_existingColumnData);
         }
 
         /// <summary>
         /// Lodas the column data into the dts objects from the datasource for columns
         /// </summary>
-        private void LoadDataSourceInformation()
+        private void LoadDataSourceInformation(Dictionary<string, string> existingColumnData)
         {
             object sharepointUrl = ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value;
             object sharepointListName = ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value;
@@ -349,7 +355,8 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     CreateExternalMetaDataColumns(input,
                         (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value,
                         (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTNAME].Value,
-                        (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value);
+                        (string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTLISTVIEWNAME].Value,
+                        existingColumnData);
                 }
             }
         }
@@ -387,7 +394,9 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="input"></param>
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
-        private static void CreateExternalMetaDataColumns(IDTSInput input, string sharepointUrl, string listName, string viewName)
+        private static void CreateExternalMetaDataColumns(
+            IDTSInput input, string sharepointUrl, string listName, string viewName,
+            Dictionary<string, string> existingColumnData)
         {
             // No need to load if the Url is bad.
             if ((sharepointUrl == null) || (sharepointUrl.Length == 0))
@@ -399,6 +408,14 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             input.ExternalMetadataColumnCollection.IsUsed = true;
 
+            // If the list has changed, then we do not want any of the exisiting column data to
+            // influence it (provides a way to actually reset the names if needed)
+            if (input.Description != listName)
+            {
+                existingColumnData.Clear();
+                input.Description = listName;
+            }
+
             try
             {
                 List<SharePointUtility.DataObject.ColumnData> accessibleColumns =
@@ -408,7 +425,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 {
                     // Setup the primary column details from the List
                     var dtsColumnMeta = input.ExternalMetadataColumnCollection.New();
-                    dtsColumnMeta.Name = column.FriendlyName;
+                    if (existingColumnData.ContainsKey(column.Name))
+                        dtsColumnMeta.Name = existingColumnData[column.Name];
+                    else
+                        dtsColumnMeta.Name = column.FriendlyName;
                     dtsColumnMeta.Description = column.DisplayName;
                     dtsColumnMeta.Length = 0;
                     dtsColumnMeta.Precision = 0;
@@ -438,8 +458,8 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     {
                         if (column.MaxLength == -1)
                         {
-                            dtsColumnMeta.DataType = DataType.DT_TEXT;
-                            dtsColumnMeta.Length = 2147483647;
+                            dtsColumnMeta.DataType = DataType.DT_NTEXT;
+                            dtsColumnMeta.Length = 0;
                         }
                         else
                         {
@@ -506,11 +526,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        private IDTSCustomProperty100 FindCustomProperty(string name)
+        private IDTSCustomProperty FindCustomProperty(string name)
         {
-            foreach (IDTSCustomProperty100 property in ComponentMetaData.CustomPropertyCollection)
+            foreach (IDTSCustomProperty property in ComponentMetaData.CustomPropertyCollection)
             {
-                if (property.Name.ToUpper() == name.ToUpper())
+                if (property.Name.ToUpper(_culture) == name.ToUpper(_culture))
                     return property;
             }
             return null;
@@ -727,7 +747,6 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     ComponentMetaData.FireInformation(0, ComponentMetaData.Name,
                         "No rows found to update in destination.", "", 0, ref fireAgain);
                 }
-
             }
         }
         #endregion
