@@ -502,7 +502,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         {
             foreach (IDTSCustomProperty property in ComponentMetaData.CustomPropertyCollection)
             {
-                if (property.Name.ToUpper(_culture) == name.ToUpper(_culture))
+                if (property.Name.ToUpper() == name.ToUpper())
                     return property;
             }
             return null;
