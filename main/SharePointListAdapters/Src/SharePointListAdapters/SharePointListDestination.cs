@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -334,6 +334,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             // Load meta information and map to columns
             input.ExternalMetadataColumnCollection.RemoveAll();
+
+            // If the existing columns are not set yet, then initialize them.
+            if (_existingColumnData == null)
+                _existingColumnData = new Dictionary<string, string>();
+
             LoadDataSourceInformation(_existingColumnData);
         }
 
