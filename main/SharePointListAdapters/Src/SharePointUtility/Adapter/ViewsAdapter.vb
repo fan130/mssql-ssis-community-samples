@@ -60,7 +60,14 @@ Namespace Adapter
 
             ' Send credentials and adjust the buffer sizes (SharePoint can send big packets of data)
             binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm
-            binding.ReceiveTimeout = New TimeSpan(0, 10, 0)
+            binding.MaxReceivedMessageSize = Int32.MaxValue
+            binding.ReaderQuotas.MaxBytesPerRead = Int32.MaxValue
+            binding.ReaderQuotas.MaxArrayLength = Int32.MaxValue
+            binding.ReaderQuotas.MaxDepth = Int32.MaxValue
+            binding.ReaderQuotas.MaxNameTableCharCount = Int32.MaxValue
+            binding.ReaderQuotas.MaxStringContentLength = Int32.MaxValue
+
+            binding.ReceiveTimeout = New TimeSpan(24, 0, 0)
 
             ' Create the client with the given settings
             Dim ep = New EndpointAddress(_sharepointUri)

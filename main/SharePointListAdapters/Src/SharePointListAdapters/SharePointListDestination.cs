@@ -630,6 +630,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                 break;
                             case DataType.DT_UI1:
                             case DataType.DT_I1:
+                            case DataType.DT_BOOL:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, string.Empty);
                                 else
@@ -666,7 +667,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, String.Empty);
                                 else
-                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("u"));
+                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("u").Replace(" ","T"));
                                 break;
                         }
                     }
