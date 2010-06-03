@@ -3,6 +3,7 @@ Imports <xmlns:rs="urn:schemas-microsoft-com:rowset">
 Imports <xmlns:t="http://schemas.microsoft.com/sharepoint/soap/">
 
 Imports System.ComponentModel
+Imports System.Net
 Imports System.Security.Principal
 Imports System.ServiceModel
 Imports System.ServiceModel.Channels
@@ -22,21 +23,42 @@ Namespace Adapter
         Private _disposed As Boolean
         Private _sharepointClient As ViewsService.ViewsSoapClient
         Private _sharepointUri As Uri
-        'Private _sharepointBaseUri As Uri
         Private _webserviceUrl As String = "/_vti_bin/views.asmx"
+        Private _credential As System.Net.NetworkCredential
 
         ''' <summary>
-        ''' Constructor keeps an instance of the views Service handy
+        ''' Constructor keeps an instance of the Views Service handy using default network credential
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub New(ByVal sharepointUri As Uri)
+            Dim credential As NetworkCredential
+            credential = CredentialCache.DefaultNetworkCredentials
+
+            InitializeObject(sharepointUri, credential)
+        End Sub
+
+        ''' <summary>
+        ''' Constructor keeps an instance of the Views Service handy using passed in network credential
+        ''' </summary>
+        ''' <remarks></remarks>
+        Public Sub New(ByVal sharepointUri As Uri, ByVal credential As NetworkCredential)
+            InitializeObject(sharepointUri, credential)
+        End Sub
+
+        ''' <summary>
+        ''' Method to centralize all initializations of this private object
+        ''' </summary>
+        ''' <param name="sharepointUri">Path to SharePoint</param>
+        ''' <param name="credential">Network Credential of User to use</param>
+        ''' <remarks></remarks>
+        Public Sub InitializeObject(ByVal sharepointUri As Uri, ByVal credential As NetworkCredential)
             Dim sharePointPath As String = sharepointUri.AbsoluteUri.ToLower()
             If (Not sharePointPath.EndsWith(_webserviceUrl)) Then
                 _sharepointUri = New Uri(sharePointPath.TrimEnd("/") + _webserviceUrl)
             Else
                 _sharepointUri = New Uri(sharePointPath)
             End If
-            '_sharepointBaseUri = New Uri(_sharepointUri.AbsoluteUri.Replace(_webserviceUrl, ""))
+            _credential = credential
 
             ResetConnection()
         End Sub
@@ -86,6 +108,8 @@ Namespace Adapter
                  Where TypeOf (e) Is Description.ClientCredentials).Single()
             clientCredentials.Windows.AllowedImpersonationLevel = _
                 TokenImpersonationLevel.Impersonation
+
+            clientCredentials.Windows.ClientCredential = _credential
         End Sub
 
         ''' <summary>

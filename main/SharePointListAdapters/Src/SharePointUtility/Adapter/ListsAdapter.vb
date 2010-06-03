@@ -3,6 +3,7 @@ Imports <xmlns:rs="urn:schemas-microsoft-com:rowset">
 Imports <xmlns:t="http://schemas.microsoft.com/sharepoint/soap/">
 
 Imports System.ComponentModel
+Imports System.Net
 Imports System.Security.Principal
 Imports System.ServiceModel
 Imports System.ServiceModel.Channels
@@ -24,11 +25,34 @@ Namespace Adapter
         Private _sharepointUri As Uri
         Private _sharepointBaseUri As Uri
         Private _webserviceUrl As String = "/_vti_bin/lists.asmx"
+        Private _credential As System.Net.NetworkCredential
+
         ''' <summary>
-        ''' Constructor keeps an instance of the lists Service handy
+        ''' Constructor keeps an instance of the lists Service handy using default network credential
         ''' </summary>
         ''' <remarks></remarks>
         Public Sub New(ByVal sharepointUri As Uri)
+            Dim credential As NetworkCredential
+            credential = CredentialCache.DefaultNetworkCredentials
+
+            InitializeObject(sharepointUri, credential)
+        End Sub
+
+        ''' <summary>
+        ''' Constructor keeps an instance of the lists Service handy using passed in network credential
+        ''' </summary>
+        ''' <remarks></remarks>
+        Public Sub New(ByVal sharepointUri As Uri, ByVal credential As NetworkCredential)
+            InitializeObject(sharepointUri, credential)
+        End Sub
+
+        ''' <summary>
+        ''' Method to centralize all initializations of this private object
+        ''' </summary>
+        ''' <param name="sharepointUri">Path to SharePoint</param>
+        ''' <param name="credential">Network Credential of User to use</param>
+        ''' <remarks></remarks>
+        Public Sub InitializeObject(ByVal sharepointUri As Uri, ByVal credential As NetworkCredential)
             Dim sharePointPath As String = sharepointUri.AbsoluteUri.ToLower()
             If (Not sharePointPath.EndsWith(_webserviceUrl)) Then
                 _sharepointUri = New Uri(sharePointPath.TrimEnd("/") + _webserviceUrl)
@@ -36,6 +60,7 @@ Namespace Adapter
                 _sharepointUri = New Uri(sharePointPath)
             End If
             _sharepointBaseUri = New Uri(_sharepointUri.AbsoluteUri.Replace(_webserviceUrl, ""))
+            _credential = credential
 
             ResetConnection()
         End Sub
@@ -85,6 +110,8 @@ Namespace Adapter
                  Where TypeOf (e) Is Description.ClientCredentials).Single()
             clientCredentials.Windows.AllowedImpersonationLevel = _
                 TokenImpersonationLevel.Impersonation
+            clientCredentials.Windows.ClientCredential = _credential
+
         End Sub
 
         ''' <summary>
@@ -157,6 +184,7 @@ Namespace Adapter
         ''' <remarks></remarks>
         Public Shared Function UploadFilesToSharePoint( _
                 ByVal targetListUri As Uri, _
+                ByVal credentials As NetworkCredential, _
                 ByVal localFilePathList As IEnumerable(Of String)) _
                 As IDictionary(Of String, Boolean)
 
@@ -172,8 +200,7 @@ Namespace Adapter
 
             ' Execute the upload
             Using webClient As New System.Net.WebClient
-                webClient.UseDefaultCredentials = True
-                webClient.Credentials = System.Net.CredentialCache.DefaultNetworkCredentials
+                webClient.Credentials = credentials
                 For Each file In filesToUpload
                     file.IsSuccess = True
                     Try
@@ -184,12 +211,12 @@ Namespace Adapter
                         Trace.WriteLine("Error Performing Update (try 1 of 3)")
                         Try
                             ' When retrying, reset the webclient and do a completely new request after a delay
-                            ExecuteUploadSharePointFile(file.RemotePath.AbsoluteUri, file.LocalPath, True)
+                            ExecuteUploadSharePointFile(file.RemotePath.AbsoluteUri, credentials, file.LocalPath, True)
                         Catch exSecond As System.Net.WebException
                             Trace.WriteLine("Error Performing Update (try 2 of 3)")
                             Try
                                 ' When retrying, reset the webclient and do a completely new request after a delay
-                                ExecuteUploadSharePointFile(file.RemotePath.AbsoluteUri, file.LocalPath, True)
+                                ExecuteUploadSharePointFile(file.RemotePath.AbsoluteUri, credentials, file.LocalPath, True)
                             Catch ex As System.Net.WebException
                                 Trace.WriteLine("Error Performing Update (try 3 of 3) Skipping file.")
                                 file.IsSuccess = False
@@ -213,15 +240,14 @@ Namespace Adapter
         ''' <param name="doPause">Whether to inject a 30 second pause</param>
         ''' <remarks></remarks>
         Private Shared Sub ExecuteUploadSharePointFile( _
-            ByVal remotePath As String, ByVal localPath As String, ByVal doPause As Boolean)
+            ByVal remotePath As String, ByVal credentials As NetworkCredential, ByVal localPath As String, ByVal doPause As Boolean)
 
             If (doPause) Then
                 System.Threading.Thread.Sleep(30000)
             End If
 
             Using webClient As New System.Net.WebClient
-                webClient.UseDefaultCredentials = True
-                webClient.Credentials = System.Net.CredentialCache.DefaultNetworkCredentials
+                webClient.Credentials = credentials
                 webClient.UploadFile(remotePath, "PUT", localPath)
             End Using
 
@@ -318,7 +344,7 @@ Namespace Adapter
         Public Function LookupViewName(ByVal listName As String, ByVal viewName As String) As String
 
             If ((viewName IsNot Nothing) AndAlso (viewName.Length > 0)) Then
-                Dim viewAdapter As ViewsAdapter = New ViewsAdapter(_sharepointBaseUri)
+                Dim viewAdapter As ViewsAdapter = New ViewsAdapter(_sharepointBaseUri, _credential)
                 Dim viewData = viewAdapter.GetViewList(listName.Trim())
                 Dim viewId = From x In viewData Where x.DisplayName.ToUpper() = viewName.ToUpper() Select x.Name
 
