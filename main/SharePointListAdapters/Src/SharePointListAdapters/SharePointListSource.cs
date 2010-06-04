@@ -2,30 +2,33 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.SqlServer.Dts.Pipeline;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 using Microsoft.Samples.SqlServer.SSIS.SharePointUtility;
+using Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager;
 using IDTSInputColumnCollection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumnCollection100;
 using IDTSExternalMetadataColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSExternalMetadataColumn100;
 using IDTSOutput = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutput100;
 using IDTSOutputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutputColumn100;
 using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty100;
 using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn100;
-
+using IDTSRuntimeConnection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSRuntimeConnection100;
 //using IDTSInputColumnCollection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSInputColumnCollection90;
 //using IDTSExternalMetadataColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSExternalMetadataColumn90;
 //using IDTSOutput = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutput90;
 //using IDTSOutputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSOutputColumn90;
 //using IDTSCustomProperty = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSCustomProperty90;
 //using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirtualInputColumn90;
+//using IDTSRuntimeConnection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSRuntimeConnection90;
 
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Source",
-		CurrentVersion = 5,
+		CurrentVersion = 6,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointSource.ico",
 		Description = "Extract data from SharePoint lists",
 		ComponentType = ComponentType.SourceAdapter)]
@@ -44,6 +47,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private Dictionary<string, int> _bufferLookup;
         private Dictionary<string, DataType> _bufferLookupDataType;
         private CultureInfo _culture;
+        private NetworkCredential _credentials;
 
         #region Design Time Methods
         /// <summary>
@@ -104,8 +108,32 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             includeFolders.Description = "Whether to return folders with the list content";
             includeFolders.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
 
+            // Add the connection manager.
+            var connection = ComponentMetaData.RuntimeConnectionCollection.New();
+            connection.Name = "Sharepoint Credential Connection";
+
         }
 
+
+        /// <summary>
+        /// Called at design time and runtime. Establishes a connection using a ConnectionManager in the package.
+        /// </summary>
+        /// <param name="transaction">Not used.</param>
+        public override void AcquireConnections(object transaction)
+        {
+            _credentials = null;
+            if (ComponentMetaData.RuntimeConnectionCollection.Count > 0)
+            {
+                if (ComponentMetaData.RuntimeConnectionCollection[0].ConnectionManager != null)
+                {
+                    var cm = Microsoft.SqlServer.Dts.Runtime.DtsConvert.GetWrapper(
+                        ComponentMetaData.RuntimeConnectionCollection[0].ConnectionManager);
+
+                    object o = cm.AcquireConnection(null);
+                    _credentials = o as NetworkCredential;
+                }
+            }
+        }
         /// <summary>
         /// The Validate() function is mostly called during the design-time phase of 
         /// the component. Its main purpose is to perform validation of the contents of the component.
@@ -340,10 +368,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
         /// <returns></returns>
-        private static List<SharePointUtility.DataObject.ColumnData> GetAccessibleSharePointColumns(string sharepointUrl, string listName, string viewName)
+        private List<SharePointUtility.DataObject.ColumnData> GetAccessibleSharePointColumns(string sharepointUrl, string listName, string viewName)
         {
             List<SharePointUtility.DataObject.ColumnData> columnList =
-                ListServiceUtility.GetFields(new Uri(sharepointUrl), listName, viewName);
+                ListServiceUtility.GetFields(new Uri(sharepointUrl), _credentials, listName, viewName);
 
             // Pull out the ID Field because we want this to be first in the list, and the other columns
             // will keep their order that SharePoint sends them.
@@ -365,7 +393,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// </summary>
         /// <param name="output"></param>
         /// <param name="p"></param>
-        private static void CreateExternalMetaDataColumns(
+        private void CreateExternalMetaDataColumns(
             IDTSOutput output, string sharepointUrl, string listName, string viewName,
             Dictionary<string, string> existingColumnData)
         {
@@ -491,6 +519,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 sharepointCulture.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
                 sharepointCulture.Value = "en-US";
             }
+            if (ComponentMetaData.RuntimeConnectionCollection.Count == 0)
+            {
+                var connection = ComponentMetaData.RuntimeConnectionCollection.New();
+                connection.Name = "Sharepoint Credential Connection";
+            }
         }
 
         /// <summary>
@@ -568,7 +601,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
             timer.Start();
             var listData = SharePointUtility.ListServiceUtility.GetListItemData(
-                new Uri(sharepointUrl), sharepointList, sharepointListView, fieldNames, camlQuery,
+                new Uri(sharepointUrl), _credentials, sharepointList, sharepointListView, fieldNames, camlQuery,
                 isRecursive == Enums.TrueFalseValue.True ? true : false, batchSize);
             timer.Stop();
             bool fireAgain = false;

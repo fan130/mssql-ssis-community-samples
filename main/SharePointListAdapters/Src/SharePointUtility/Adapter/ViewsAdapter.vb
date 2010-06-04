@@ -27,17 +27,6 @@ Namespace Adapter
         Private _credential As System.Net.NetworkCredential
 
         ''' <summary>
-        ''' Constructor keeps an instance of the Views Service handy using default network credential
-        ''' </summary>
-        ''' <remarks></remarks>
-        Public Sub New(ByVal sharepointUri As Uri)
-            Dim credential As NetworkCredential
-            credential = CredentialCache.DefaultNetworkCredentials
-
-            InitializeObject(sharepointUri, credential)
-        End Sub
-
-        ''' <summary>
         ''' Constructor keeps an instance of the Views Service handy using passed in network credential
         ''' </summary>
         ''' <remarks></remarks>
@@ -58,7 +47,11 @@ Namespace Adapter
             Else
                 _sharepointUri = New Uri(sharePointPath)
             End If
-            _credential = credential
+            If (credential Is Nothing) Then
+                _credential = CredentialCache.DefaultNetworkCredentials()
+            Else
+                _credential = credential
+            End If
 
             ResetConnection()
         End Sub

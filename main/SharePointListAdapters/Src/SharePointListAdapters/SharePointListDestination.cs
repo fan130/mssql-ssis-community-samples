@@ -1,7 +1,8 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Xml.Linq;
 using System.Text;
 using Microsoft.SqlServer.Dts.Pipeline;
@@ -25,7 +26,7 @@ using IDTSVirtualInputColumn = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSVirt
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Destination",
-		CurrentVersion = 5,
+		CurrentVersion = 6,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointDestination.ico",
 		Description = "Add, update, or delete data in SharePoint lists",
 		ComponentType = ComponentType.DestinationAdapter)]
@@ -42,6 +43,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private Dictionary<string, DataType> _bufferLookupDataType;
         private Dictionary<string, string> _existingColumnData;
         private CultureInfo _culture;
+        private NetworkCredential _credentials;
 
         #region Design Time Methods
         /// <summary>
@@ -95,8 +97,32 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             input.Name = "Component Input";
             input.Description = "This is what we see from the upstream component";
             input.HasSideEffects = true;
+
+            // Add the connection manager.
+            var connection = ComponentMetaData.RuntimeConnectionCollection.New();
+            connection.Name = "SharePoint Credential Connection";
         }
 
+
+        /// <summary>
+        /// Called at design time and runtime. Establishes a connection using a ConnectionManager in the package.
+        /// </summary>
+        /// <param name="transaction">Not used.</param>
+        public override void AcquireConnections(object transaction)
+        {
+            _credentials = null;
+            if (ComponentMetaData.RuntimeConnectionCollection.Count > 0)
+            {
+                if (ComponentMetaData.RuntimeConnectionCollection[0].ConnectionManager != null)
+                {
+                    var cm = Microsoft.SqlServer.Dts.Runtime.DtsConvert.GetWrapper(
+                        ComponentMetaData.RuntimeConnectionCollection[0].ConnectionManager);
+
+                    _credentials = (NetworkCredential)cm.AcquireConnection(null);
+                }
+            }
+
+        }
         /// <summary>
         /// The Validate() function is mostly called during the design-time phase of 
         /// the component. Its main purpose is to perform validation of the contents of the component.
@@ -372,11 +398,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
         /// <returns></returns>
-        private static List<SharePointUtility.DataObject.ColumnData>
+        private List<SharePointUtility.DataObject.ColumnData>
             GetAccessibleSharePointColumns(string sharepointUrl, string listName, string viewName)
         {
             List<SharePointUtility.DataObject.ColumnData> columnList =
-                ListServiceUtility.GetFields(new Uri(sharepointUrl), listName, viewName);
+                ListServiceUtility.GetFields(new Uri(sharepointUrl), _credentials, listName, viewName);
 
             // Pull out the ID Field because we want this to be first in the list, and the other columns
             // will keep their order that SharePoint sends them.
@@ -399,7 +425,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="input"></param>
         /// <param name="sharepointUrl"></param>
         /// <param name="listName"></param>
-        private static void CreateExternalMetaDataColumns(
+        private void CreateExternalMetaDataColumns(
             IDTSInput input, string sharepointUrl, string listName, string viewName,
             Dictionary<string, string> existingColumnData)
         {
@@ -523,6 +549,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 sharepointCulture.Description = "Culture to use when communicating with remote SharePoint Server (en-US).";
                 sharepointCulture.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
                 sharepointCulture.Value = "en-US";
+            }
+            if (ComponentMetaData.RuntimeConnectionCollection.Count == 0)
+            {
+                var connection = ComponentMetaData.RuntimeConnectionCollection.New();
+                connection.Name = "Sharepoint Credential Connection";
             }
         }
 
@@ -684,7 +715,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     {
                         // Perform the update
                         resultData = SharePointUtility.ListServiceUtility.UpdateListItems(
-                            new Uri(sharepointUrl), sharepointList, sharepointListView, dataQueue, batchSize);
+                            new Uri(sharepointUrl), _credentials, sharepointList, sharepointListView, dataQueue, batchSize);
 
                     }
                     else
@@ -696,7 +727,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
                         // Delete the list items with IDs
                         resultData = SharePointUtility.ListServiceUtility.DeleteListItems(
-                            new Uri(sharepointUrl), sharepointList, sharepointListView, idList);
+                            new Uri(sharepointUrl), _credentials, sharepointList, sharepointListView, idList);
                     }
                     timer.Stop();
                     var errorRows = from result in resultData.Descendants("errorCode")

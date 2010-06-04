@@ -28,17 +28,6 @@ Namespace Adapter
         Private _credential As System.Net.NetworkCredential
 
         ''' <summary>
-        ''' Constructor keeps an instance of the lists Service handy using default network credential
-        ''' </summary>
-        ''' <remarks></remarks>
-        Public Sub New(ByVal sharepointUri As Uri)
-            Dim credential As NetworkCredential
-            credential = CredentialCache.DefaultNetworkCredentials
-
-            InitializeObject(sharepointUri, credential)
-        End Sub
-
-        ''' <summary>
         ''' Constructor keeps an instance of the lists Service handy using passed in network credential
         ''' </summary>
         ''' <remarks></remarks>
@@ -60,7 +49,11 @@ Namespace Adapter
                 _sharepointUri = New Uri(sharePointPath)
             End If
             _sharepointBaseUri = New Uri(_sharepointUri.AbsoluteUri.Replace(_webserviceUrl, ""))
-            _credential = credential
+            If (credential Is Nothing) Then
+                _credential = CredentialCache.DefaultNetworkCredentials()
+            Else
+                _credential = credential
+            End If
 
             ResetConnection()
         End Sub
@@ -200,7 +193,11 @@ Namespace Adapter
 
             ' Execute the upload
             Using webClient As New System.Net.WebClient
-                webClient.Credentials = credentials
+                If (credentials Is Nothing) Then
+                    webClient.UseDefaultCredentials = True
+                Else
+                    webClient.Credentials = credentials
+                End If
                 For Each file In filesToUpload
                     file.IsSuccess = True
                     Try
@@ -247,7 +244,11 @@ Namespace Adapter
             End If
 
             Using webClient As New System.Net.WebClient
-                webClient.Credentials = credentials
+                If (credentials Is Nothing) Then
+                    webClient.UseDefaultCredentials = True
+                Else
+                    webClient.Credentials = credentials
+                End If
                 webClient.UploadFile(remotePath, "PUT", localPath)
             End Using
 

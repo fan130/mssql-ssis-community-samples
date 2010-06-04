@@ -15,14 +15,10 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>sample.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccAuxPath>
-    </SccAuxPath>
-    <SccProvider>
-    </SccProvider>
+    <SccProjectName>%24/SQLSrvIntegrationSrv/main/SharePointListAdapters/Src/SharePointListAdapters</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>https://tfs02.codeplex.com</SccAuxPath>
+    <SccProvider>{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,6 +43,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.SqlServer.DTSPipelineWrap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SQLServer.DTSRuntimeWrap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=x86" />
+    <Reference Include="Microsoft.SQLServer.ManagedDTS, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SqlServer.PipelineHost, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -77,6 +74,10 @@
     <EmbeddedResource Include="Icons\SharePointDestination.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SharePointListConnection\SharePointListConnection.csproj">
+      <Project>{2EF043E5-D843-4085-9801-5269AED387C8}</Project>
+      <Name>SharePointListConnection</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SharePointUtility\SharePointUtility.vbproj">
       <Project>{A3117F6A-B873-4B05-9B4B-84FE9B0B6960}</Project>
       <Name>SharePointUtility</Name>
