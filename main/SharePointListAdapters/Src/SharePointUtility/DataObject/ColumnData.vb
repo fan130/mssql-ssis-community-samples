@@ -1,4 +1,7 @@
-﻿Namespace DataObject
+﻿Imports System.Xml
+Imports System.Text.RegularExpressions
+
+Namespace DataObject
     ''' <summary>
     ''' Data Object for SharePoint Field Information
     ''' </summary>
@@ -8,7 +11,6 @@
         Private Shared _columnLengthLookup As Dictionary(Of String, Short)
 
         Private Const MAX_LENGTH As Short = 4000
-        Private Const SP_SPACE As String = "_x0020_"
 
         Private _name As String
         Private _displayName As String
@@ -119,10 +121,10 @@
         ''' <remarks></remarks>
         Public Property IsInView() As Boolean
             Get
-                Return _isInView
+                Return _IsInView
             End Get
             Friend Set(ByVal value As Boolean)
-                _isInView = value
+                _IsInView = value
             End Set
         End Property
         ''' <summary>
@@ -166,7 +168,7 @@
         ''' <remarks></remarks>
         Public ReadOnly Property FriendlyName() As String
             Get
-                Return Name.Replace(SP_SPACE, "")
+                Return _displayName
             End Get
         End Property
 
