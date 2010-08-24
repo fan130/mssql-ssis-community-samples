@@ -1,0 +1,17 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<UsingTask TaskName="SSISMSBuild.BuildDeploymentManifest"
+		AssemblyFile="..\SSISMSBuild\SSISMSBuild\bin\Debug\SSISMSBuild.dll"/>
+  <ItemGroup>
+    <SSISProjectFile Include="..\anotherProject\*.dtproj"/>
+    <SSISProjectFile Include="**\*.dtproj"/>
+    <SSISProject Include="@(SSISProjectFile)">
+      <OutputDirectory>%(FileName)</OutputDirectory>
+    </SSISProject>
+    
+  </ItemGroup>
+  
+	<Target Name="Build">
+		<BuildDeploymentManifest InputProject="@(SSISProject)"/>
+	</Target>
+</Project>
+
