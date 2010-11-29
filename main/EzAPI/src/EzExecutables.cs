@@ -1,3 +1,8 @@
+// Copyright © Microsoft Corporation.  All Rights Reserved.
+// This code released under the terms of the 
+// Microsoft Public License (MS-PL, http://opensource.org/licenses/ms-pl.html.)
+
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,9 +13,16 @@ using RunWrap=Microsoft.SqlServer.Dts.Runtime.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Tasks.ExecutePackageTask;
+using Microsoft.SqlServer.Dts.Tasks.ExecuteSQLTask;
+using Microsoft.SqlServer.Dts.Tasks.TransferDatabaseTask;
 using System.Reflection;
 using System.IO;
 using System.Globalization;
+using System.Data.SqlClient;
+using SMO=Microsoft.SqlServer.Management.Smo;
+using System.Diagnostics;
+using Microsoft.SqlServer.Dts.Tasks.FileSystemTask;
+	
 
 namespace Microsoft.SqlServer.SSIS.EzAPI
 {
@@ -192,12 +204,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public void AttachTo(EzExecutable e)
         {
-            Package.PrecedenceConstraints.Add(e, this);
+            Parent.PrecedenceConstraints.Add(e, this);
         }
 
         public void Detatch()
         {
-            foreach (PrecedenceConstraint p in Package.PrecedenceConstraints)
+            foreach (PrecedenceConstraint p in Parent.PrecedenceConstraints)
             {
                 string curid;
                 if (p.ConstrainedExecutable is TaskHost)
@@ -205,7 +217,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 else
                     curid = (p.ConstrainedExecutable as DtsContainer).ID;
                 if (curid == ID)
-                    Package.PrecedenceConstraints.Remove(p);
+                    Parent.PrecedenceConstraints.Remove(p);
             }
         }
     }
@@ -214,6 +226,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
     {
         protected Executables m_execs;
         protected DtsContainer host { get { return (DtsContainer)m_exec; } }
+
+        public PrecedenceConstraints PrecedenceConstraints { get { return ((IDTSSequence)m_exec).PrecedenceConstraints; } }
 
         protected void RecreateExecutables()
         {
@@ -387,6 +401,92 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
+    [ExecID("STOCK:SEQUENCE")]
+    public class EzSequence : EzContainer
+    {
+        public EzSequence(EzContainer parent, DtsContainer c) : base(parent, c) { }
+        public EzSequence(EzContainer parent) : base(parent) { RecreateExecutables(); }
+    }
+
+    // Represents the seven different types of For Each enumerators
+    public enum ForEachEnumeratorType
+    {
+        ForEachFileEnumerator = 0,
+        ForEachItemEnumerator = 1,
+        ForEachADOEnumerator = 2,
+        ForEachADONETSchemaRowsetEnumerator = 3,
+        ForEachFromVariableEnumerator = 4,
+        ForEachNodeListEnumerator = 5,
+        ForEachSMOEnumerator = 6
+    }
+
+    [ExecID("STOCK:FOREACHLOOP")]
+    public class EzForEachLoop : EzContainer
+    {
+        public EzForEachLoop(EzContainer parent, DtsContainer c) : base(parent, c) { }
+        public EzForEachLoop(EzContainer parent) : base(parent) { RecreateExecutables(); }
+
+        public ForEachEnumeratorHost ForEachEnumerator
+        {
+            get { return (m_exec as ForEachLoop).ForEachEnumerator; }
+            set { (m_exec as ForEachLoop).ForEachEnumerator = value; }
+        }
+        
+        /*
+         * Returns the string representation of the given type of For Each enumerator
+         */
+        private string GetEnumerator(ForEachEnumeratorType enumeratorType)
+        {
+            string enumString = string.Empty;
+            switch (enumeratorType)
+            {
+                case ForEachEnumeratorType.ForEachFileEnumerator:
+                    enumString = "Foreach File Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachItemEnumerator:
+                    enumString = "Foreach Item Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachADOEnumerator:
+                    enumString = "Foreach ADO Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachADONETSchemaRowsetEnumerator:
+                    enumString = "Foreach ADO.NET Schema Rowset Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachFromVariableEnumerator:
+                    enumString = "Foreach From Variable Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachNodeListEnumerator:
+                    enumString = "Foreach NodeList Enumerator";
+                    break;
+                case ForEachEnumeratorType.ForEachSMOEnumerator:
+                    enumString = "Foreach SMO Enumerator";
+                    break;
+                default:
+                    enumString = "Foreach File Enumerator";
+                    break;
+            }
+            return enumString;
+        }
+
+        /*
+         * Based on the argument enumeratorType, initializes the ForEachEnumerator property
+         * and sets a value to the enumerator's CollectionEnumerator property.
+         */
+        public void Initialize(ForEachEnumeratorType enumeratorType)
+        {
+            ForEachEnumerator = (new Application()).ForEachEnumeratorInfos[GetEnumerator(enumeratorType)].CreateNew();
+            ForEachEnumerator.CollectionEnumerator = enumeratorType == ForEachEnumeratorType.ForEachItemEnumerator
+                || enumeratorType == ForEachEnumeratorType.ForEachADOEnumerator
+                || enumeratorType == ForEachEnumeratorType.ForEachNodeListEnumerator;
+            RecreateExecutables();
+        }
+
+        public void Initialize()
+        {
+            Initialize(ForEachEnumeratorType.ForEachFileEnumerator);
+        }
+    }
+
     ///<summary>
     ///This is a base package class to use when dynamically constructing packages 
     ///</summary>
@@ -442,8 +542,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
 
         public Connections Connections { get { return (m_exec as Package).Connections; } }
-        public PrecedenceConstraints PrecedenceConstraints { get { return (m_exec as Package).PrecedenceConstraints; } }
-
+        //public PrecedenceConstraints PrecedenceConstraints { get { return (m_exec as Package).PrecedenceConstraints; } }
+    
         public bool ConnectionExists(string name)
         {
 	    foreach (ConnectionManager cm in ((Package)m_exec).Connections)
@@ -569,7 +669,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("SSIS.ExecutePackageTask.2")]
+    [ExecID("SSIS.ExecutePackageTask.3")]
     public class EzExecPackage : EzTask
     {
         public EzExecPackage(EzContainer parent) : base(parent) { }
@@ -652,7 +752,91 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("SSIS.Pipeline.2")]
+
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteSQLTask.ExecuteSQLTask, Microsoft.SqlServer.SQLTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzExecSqlTask : EzTask
+    {
+        public EzExecSqlTask(EzContainer parent) : base(parent) { InitializeTask(); }
+        public EzExecSqlTask(EzContainer parent, TaskHost task) : base(parent, task) { InitializeTask(); }
+
+        /*
+         * Provides the component with the initial values assigned in the BIDS environment.
+         */
+        private void InitializeTask()
+        {
+            TimeOut = 0;
+            CodePage = 1252;
+            ResultSetType = ResultSetType.ResultSetType_None;
+            SqlStatementSourceType = SqlStatementSourceType.DirectInput;
+            SqlStatementSource = string.Empty;
+            BypassPrepare = true;
+        }
+
+        public uint TimeOut
+        {
+            get { return (uint)host.Properties["TimeOut"].GetValue(host); }
+            set { host.Properties["TimeOut"].SetValue(host, value); }
+        }
+        
+        public uint CodePage
+        {
+            get { return (uint)host.Properties["CodePage"].GetValue(host); }
+            set { host.Properties["CodePage"].SetValue(host, value); }
+        }
+     
+
+        public ResultSetType ResultSetType
+        {
+            get { return (ResultSetType)host.Properties["ResultSetType"].GetValue(host); }
+            set { host.Properties["ResultSetType"].SetValue(host, value); }
+        }
+        
+        protected EzConnectionManager m_connection;
+        public EzConnectionManager Connection
+        {
+            get { return m_connection; }
+            set 
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("Connection value");
+                }
+                if (value.CM.CreationName != "OLEDB")
+                {
+                    throw new IncorrectAssignException(string.Format("Cannot assign {0} connection to EzExecSqlTask", value.CM.CreationName));
+                }
+                (host.InnerObject as ExecuteSQLTask).Connection = value.Name;
+                m_connection = value;
+            }
+        }
+
+        public SqlStatementSourceType SqlStatementSourceType
+        {
+            get { return (SqlStatementSourceType)host.Properties["SqlStatementSourceType"].GetValue(host); }
+            set { host.Properties["SqlStatementSourceType"].SetValue(host, value); }
+        }
+    
+
+        public string SqlStatementSource
+        {
+            get { return (string)host.Properties["SqlStatementSource"].GetValue(host); }
+            set { host.Properties["SqlStatementSource"].SetValue(host, value); }
+        }
+    
+
+        public bool BypassPrepare
+        {
+            get { return (bool)host.Properties["BypassPrepare"].GetValue(host); }
+            set { host.Properties["BypassPrepare"].SetValue(host, value); }
+        }
+
+        public IDTSParameterBindings ParameterBindings
+        {
+            get { return (host.InnerObject as ExecuteSQLTask).ParameterBindings; }
+        }
+    }
+
+    [ExecID("SSIS.Pipeline.3")]
     public class EzDataFlow : EzTask
     {
         internal List<EzComponent> m_components = new List<EzComponent>();
@@ -796,4 +980,462 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             return null;
         }
     }
+
+    public class DBFile
+    {
+        protected EzTransferDBTask m_obj;
+        protected string m_file;
+        protected string m_folder;
+        protected string m_networkFileShare;
+
+        public DBFile(EzTransferDBTask obj, string file, string folder, string netShare)
+        { 
+            m_obj = obj;
+            m_file = (file == null)? "" : file;
+            m_folder = (folder == null)? "" : folder;
+            m_networkFileShare = (netShare == null)? "": netShare;
+        }
+
+        public string File { get { return m_file; } }
+        public string Folder { get { return m_folder; } }
+
+        public virtual string NetworkFileShare
+        {
+            get
+            {
+                    return m_networkFileShare;
+            }
+            set
+            {
+                m_networkFileShare = value;
+                m_obj.UpdateDbFileListProperty(true);
+            }
+        }
+    } 
+
+
+    public class DestDBFile : DBFile
+    {
+        //TODO: need to  test the virtul propeties
+        internal DestDBFile(EzTransferDBTask obj, string destFile, string destFolder, string netShare) : base(obj, destFile, destFolder, netShare) { }
+        public new string File { get { return base.File; } set { m_file = value; m_obj.UpdateDbFileListProperty(false); } }
+        public new string Folder { get { return base.Folder; } set { m_folder = value; m_obj.UpdateDbFileListProperty(false); } }
+        public override string NetworkFileShare
+        {
+            get
+            {
+                return base.NetworkFileShare;
+            }
+            set
+            {
+                m_networkFileShare = value;
+                m_obj.UpdateDbFileListProperty(false);
+            }
+        }
+    }
+
+    public class DestFileCollection : ReadOnlyCollection<DestDBFile>
+    {
+        private EzTransferDBTask m_obj;
+
+        public DestFileCollection(IList<DestDBFile> list, EzTransferDBTask obj) : base(list) { m_obj = obj; }
+        public void Add(string fileName, string path, string share)
+        {
+            m_obj.m_DestDatabaseFiles.Add(new DestDBFile(m_obj, fileName, path, share));
+            m_obj.UpdateDbFileListProperty(false);
+        }
+    }
+
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.TransferDatabaseTask.TransferDatabaseTask, Microsoft.SqlServer.TransferDatabasesTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzTransferDBTask : EzTask
+    {
+        public EzTransferDBTask(EzContainer parent) : base(parent) { }
+        public EzTransferDBTask(EzContainer parent, TaskHost task) : base(parent, task) { }
+
+        public string DestinationDatabaseName
+        {
+            get { return (string)host.Properties["DestinationDatabaseName"].GetValue(host); }
+            set { host.Properties["DestinationDatabaseName"].SetValue(host, value); }
+        }
+
+        internal List<DestDBFile> m_DestDatabaseFiles = new List<DestDBFile>();
+        public DestFileCollection DestinationDatabaseFiles
+        {
+            get { return new DestFileCollection(m_DestDatabaseFiles, this); }
+            //set 
+            //{
+            //    m_DestDatabaseFiles = new List<DestDBFile>(value);
+            //    string propValue = GetStringValueOfDbFilesProperty(m_DestDatabaseFiles);
+            //    host.Properties["DestinationDatabaseFiles"].SetValue(host, propValue);
+            //}
+        }
+
+        public bool DestinationOverwrite
+        {
+            get { return (bool)host.Properties["DestinationOverwrite"].GetValue(host); }
+            set { host.Properties["DestinationOverwrite"].SetValue(host, value); }
+        }
+
+        public bool ReattachSourceDatabase
+        {
+            get { return (bool)host.Properties["ReattachSourceDatabase"].GetValue(host); }
+            set { host.Properties["ReattachSourceDatabase"].SetValue(host, value); }
+        }
+
+
+        protected EzSMOServerCM m_srcconnection;
+        public EzSMOServerCM SrcConnection
+        {
+            get { return m_srcconnection; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                (host.InnerObject as TransferDatabaseTask).SourceConnection = value.Name;
+                m_srcconnection = value;
+            }
+        }
+
+        protected EzSMOServerCM m_destconnection;
+        public EzSMOServerCM DestConnection
+        {
+            get { return m_destconnection; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                (host.InnerObject as TransferDatabaseTask).DestinationConnection = value.Name;
+                m_destconnection = value;
+            }
+
+        }
+
+        public TransferAction SrcDBAction
+        {
+            get { return (TransferAction)host.Properties["Action"].GetValue(host); }
+            set { host.Properties["Action"].SetValue(host, value); }
+        }
+
+        public TransferMethod SrcDBMethod
+        {
+            get { return (TransferMethod)host.Properties["Method"].GetValue(host); }
+            set { host.Properties["Method"].SetValue(host, value); }
+        }
+
+        public string SourceDatabaseName
+        {
+            get { return (string)host.Properties["SourceDatabaseName"].GetValue(host); }
+            set { host.Properties["SourceDatabaseName"].SetValue(host, value); ReinitializeSrcDbFileList(); }
+        }
+
+        
+
+        List<DBFile> m_sourceDatabaseFiles = new List<DBFile>();
+        public ReadOnlyCollection<DBFile> SourceDatabaseFiles 
+        {
+            get { return new ReadOnlyCollection<DBFile>(m_sourceDatabaseFiles); }
+        }
+
+        private void ReinitializeSrcDbFileList()
+        {
+            if (m_sourceDatabaseFiles.Count != 0)
+                m_sourceDatabaseFiles.Clear();
+            FillOutSourceDBFiles();
+            UpdateDbFileListProperty(true);
+        }
+
+        internal void UpdateDbFileListProperty(bool IsSource)
+        {
+            if (IsSource)
+            {
+                string value = GetStringValueOfDbFilesProperty(m_sourceDatabaseFiles);
+                host.Properties["SourceDatabaseFiles"].SetValue(host, value);
+            }
+            else
+            {
+                string value = GetStringValueOfDbFilesProperty(m_DestDatabaseFiles);
+                host.Properties["DestinationDatabaseFiles"].SetValue(host, value);
+            }
+   
+        }
+        
+        internal string GetStringValueOfDbFilesProperty<T> (List<T> collection) where T: DBFile 
+        {
+            string value = "";
+            foreach (DBFile dbFile in collection)
+            {
+                if (SrcDBMethod == TransferMethod.DatabaseOffline)
+                    value += String.Format("\"{0}\",\"{1}\",\"{2}\";", dbFile.File, dbFile.Folder, dbFile.NetworkFileShare);
+                else
+                    value += String.Format("\"{0}\",\"{1}\",\"\";", dbFile.File, dbFile.Folder);     
+            }
+
+            return value;
+        }
+
+
+        private void FillOutSourceDBFiles()
+        {
+            SMO.Server smoServer = null;
+            
+            if ((ConnectionManager)m_srcconnection == null)
+            {
+                throw new ExecutableException("The source connection is not specified");
+            }
+            //if database name was not specified we throw
+            else if (string.IsNullOrEmpty(SourceDatabaseName))
+            {
+                throw new ExecutableException("The source database name is not specified"); ;
+            }
+            else 
+            {
+                try
+                {
+
+                    smoServer = ((ConnectionManager)m_srcconnection).AcquireConnection(null) as SMO.Server;
+                    SMO.Database database = smoServer.Databases[SourceDatabaseName];
+                    if (database == null)
+                    {
+                        throw new ExecutableException("The specified database doesnot exist");
+                    }
+
+                    foreach (SMO.FileGroup fileGroup in database.FileGroups)
+                    {
+                        foreach (SMO.DataFile dataFile in fileGroup.Files)
+                        {
+                            AddRow(dataFile.FileName);
+                        }
+                    }
+                    //let's do all the log files 
+                    foreach (SMO.LogFile logFile in database.LogFiles)
+                    {
+                        AddRow(logFile.FileName);
+                    }
+                }
+                catch (Exception) { throw; }
+
+                finally
+                {
+                    //if the connection is opened let's close it
+                    if (smoServer != null && smoServer.ConnectionContext.IsOpen)
+                    {
+                        smoServer.ConnectionContext.Disconnect();
+                    }
+
+                    //let's call ReleaseConnection on the connection mananger
+                    if ((ConnectionManager)m_srcconnection != null)
+                    {
+                        ((ConnectionManager)m_srcconnection).ReleaseConnection(smoServer);
+                    }
+                }
+            }
+           
+        }
+        
+
+        /// <summary>
+        /// creates and add a row to the grid for the specified fileName
+        /// </summary>
+        private void AddRow(string fullFileName)
+        {
+            DBFile dbFile = new DBFile(this, Path.GetFileName(fullFileName), Path.GetDirectoryName(fullFileName), "");
+            m_sourceDatabaseFiles.Add(dbFile);
+        }        
+    }
+
+
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteProcess.ExecuteProcess, Microsoft.SqlServer.ExecProcTask,Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzExecProcessTask : EzTask
+    {
+        public EzExecProcessTask(EzContainer parent) : base(parent) { }
+        public EzExecProcessTask(EzContainer parent, TaskHost task) : base(parent, task) { }
+
+
+        public bool RequiredFullFileName
+        {
+            get { return (bool)host.Properties["RequireFullFileName"].GetValue(host); }
+            set { host.Properties["RequireFullFileName"].SetValue(host, value); }
+        }
+
+        public string Executable
+        {
+            get { return (string)host.Properties["Executable"].GetValue(host); }
+            set { host.Properties["Executable"].SetValue(host, value); }
+        }
+
+        public string Arguments
+        {
+            get { return (string)host.Properties["Arguments"].GetValue(host); }
+            set { host.Properties["Arguments"].SetValue(host, value); }
+        }
+
+        public string WorkingDirectory
+        {
+            get { return (string)host.Properties["WorkingDirectory"].GetValue(host); }
+            set { host.Properties["WorkingDirectory"].SetValue(host, value); }
+        }
+       
+        public string StandarInputVariable
+        {
+            get { return (string)host.Properties["StandarInputVariable"].GetValue(host); }
+            set 
+            {
+                if (host.Variables.Contains((string)value))
+                    host.Properties["StandarInputVariable"].SetValue(host, value);
+                else
+                    throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));
+            }
+        }
+
+        public string StandarOutputVariable
+        {
+            get { return (string)host.Properties["StandarOutputVariable"].GetValue(host); }
+            set
+            {
+                if (!host.Variables.Contains((string)value))
+                    throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));
+                host.Properties["StandarOutputVariable"].SetValue(host, value);                                   
+            }
+        }
+
+        public string StandarErrorVariable
+        {
+            get { return (string)host.Properties["StandarErrorVariable"].GetValue(host); }
+            set
+            {
+                if (!host.Variables.Contains((string)value))
+                    throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));
+                host.Properties["StandarErrorVariable"].SetValue(host, value);
+            }
+        }
+
+        public bool FailTaskIfReturnCodeIsNotSuccessValue
+        {
+            get { return (bool)host.Properties["FailTaskIfReturnCodeIsNotSuccessValue"].GetValue(host); }
+            set { host.Properties["FailTaskIfReturnCodeIsNotSuccessValue"].SetValue(host, value); }
+        }
+
+        public int SuccessValue
+        {
+            get { return (int)host.Properties["SuccessValue"].GetValue(host); }
+            set { host.Properties["SuccessValue"].SetValue(host, value); }
+        }
+
+        public int TimeOut
+        {
+            get { return (int)host.Properties["TimeOut"].GetValue(host); }
+            set { host.Properties["TimeOut"].SetValue(host, value); }
+        }
+
+        public bool TerminateProcessAfterTimeOut
+        {
+            get { return (bool)host.Properties["TerminateProcessAfterTimeOut"].GetValue(host); }
+            set 
+            {
+                if (TimeOut != 0)
+                    host.Properties["TerminateProcessAfterTimeOut"].SetValue(host, value); 
+            }
+        }
+
+        public ProcessWindowStyle WindowsStyle
+        {
+            get { return (ProcessWindowStyle)host.Properties["WindowsStyle"].GetValue(host); }
+            set { host.Properties["WindowsStyle"].SetValue(host, value); }
+        }
+
+    }
+
+
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.FileSystemTask.FileSystemTask, Microsoft.SqlServer.FileSystemTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzFileSystemTask : EzTask
+    {
+        public EzFileSystemTask(EzContainer parent) : base(parent) { }
+        public EzFileSystemTask(EzContainer parent, TaskHost task) : base(parent, task) { }
+
+
+        public bool OverwriteDestination
+        {
+            get { return (bool)host.Properties["OverwriteDestination"].GetValue(host); }
+            set { host.Properties["OverwriteDestination"].SetValue(host, value); }
+        }
+
+        public DTSFileSystemOperation Operation
+        {
+            get { return (DTSFileSystemOperation)host.Properties["Operation"].GetValue(host); }
+            set { host.Properties["Operation"].SetValue(host, value); }
+        }
+
+        public bool IsDestinationPathVariable
+        {
+            get { return (bool)host.Properties["IsDestinationPathVariable"].GetValue(host); }
+            set { host.Properties["IsDestinationPathVariable"].SetValue(host, value); }
+        }
+
+        public bool IsSourcePathVariable
+        {
+            get { return (bool)host.Properties["IsSourcePathVariable"].GetValue(host); }
+            set { host.Properties["IsSourcePathVariable"].SetValue(host, value); }
+        }
+
+        protected EzFileCM m_destconnection;
+        public EzFileCM DestConnection
+        {
+            get { return m_destconnection; }
+            set
+            {
+                if (IsDestinationPathVariable)
+                    throw new ExecutableException("The property \"IsDestinationPathVariable\" is set to True. Please specify a variable for the DestinationVariable");
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                (host.InnerObject as FileSystemTask).Destination = value.Name;
+                m_destconnection = value;
+
+            }
+
+        }
+
+        protected EzFileCM m_srcconnection;
+        public EzFileCM SrcConnection
+        {
+            get { return m_srcconnection; }
+            set
+            {
+                if (IsDestinationPathVariable)
+                    throw new ExecutableException("The property \"IsSourcePathVariable\" is set to True. Please specify a variable for the SourceVariable");
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                (host.InnerObject as FileSystemTask).Source = value.Name;
+                m_destconnection = value;
+            }
+
+        }
+
+        public string DestinationVariable
+        {
+            get { return (string)host.Properties["DestinationVariable"].GetValue(host); }
+            set
+            {
+                if (!IsDestinationPathVariable)
+                    throw new ExecutableException("The property \"IsDestinationPathVariable\" is set to false. Please specify a file connection manager for the DestinationConnection");
+                if (!host.Variables.Contains((string)value))
+                    throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));
+                host.Properties["DestinationVariable"].SetValue(host, value);          
+            }
+        }
+
+        public string SourceVariable
+        {
+            get { return (string)host.Properties["SourceVariable"].GetValue(host); }
+            set
+            {
+                if (!IsDestinationPathVariable)
+                    throw new ExecutableException("The property \"IsSourcePathVariable\" is set to false. Please specify a file connection manager for the SourceConnection");
+                if (!host.Variables.Contains((string)value))
+                    throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));                 
+                host.Properties["SourceVariable"].SetValue(host, value);    
+            }
+        }
+       
+    }
+
 }

@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Copyright © Microsoft Corporation.  All Rights Reserved.
+// This code released under the terms of the 
+// Microsoft Public License (MS-PL, http://opensource.org/licenses/ms-pl.html.)
+
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -182,6 +187,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
+    [ConnMgrID("EXCEL")]
+    public class EzExcelCM : EzConnectionManager
+    {
+        public EzExcelCM(EzPackage parent) : base(parent) { }
+        public EzExcelCM(EzPackage parent, string name) : base(parent, name) { }
+        public EzExcelCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
+    }
+
     /// <summary>
     /// OleDb connection manager for SQL Server
     /// </summary>
@@ -193,7 +206,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public void SetConnectionString(string server, string db)
         {
-            ConnectionString = string.Format("provider=sqlncli10;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
+            ConnectionString = string.Format("provider=sqlncli11;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
                 db, server);
         }
     }
@@ -203,6 +216,16 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzDb2OleDbCM(EzPackage parent) : base(parent) { }
         public EzDb2OleDbCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzDb2OleDbCM(EzPackage parent, string name) : base(parent, name) { }
+
+        public void SetConnectionString()
+        {
+            SetConnectionString("CONDOR", "DTSTeam");
+        }
+
+        public void SetConnectionString(string server, string db)
+        {
+            SetConnectionString(server, db, "DTSTEAM", "DTSTEAM");
+        }
 
         public void SetConnectionString(string server, string db, string user, string pwd)
         {
@@ -235,6 +258,10 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         {
             ConnectionString = string.Format("Provider=OraOLEDB.Oracle;User ID={0};Password={1};Data Source={2};Connect Timeout=300;",
                 user, pwd, server);
+          /*
+            ConnectionString = string.Format("Data Source={0};User ID={1};Password={2};Provider=OraOLEDB.Oracle.1;Persist Security Info=True;",
+                server, user, pwd);
+          * */
         }
     }
 
@@ -253,12 +280,16 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzFileCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzFileCM(EzPackage parent, string name) : base(parent, name) { }
 
+        // DataSourceID property does not exist.  Using the property throws an exception, so
+        // the property was removed.
+        /*
+        [System.Obsolete("DTSProperty DataSourceID does not exist.", true)]
         public string DataSourceID
         {
             get { return (string)m_conn.Properties["DataSourceID"].GetValue(m_conn); }
             set { m_conn.Properties["DataSourceID"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
         }
-
+        */
         public FileUsageType FileUsageType
         {
             get { return (FileUsageType)m_conn.Properties["FileUsageType"].GetValue(m_conn); }
@@ -338,16 +369,16 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public FlatFileFormat Format
         {
             get 
-            { 
-                string fmt = (string)m_conn.Properties["TextQualifier"].GetValue(m_conn);
+            {
+                string fmt = (string)m_conn.Properties["Format"].GetValue(m_conn);
                 for (FlatFileFormat i = FlatFileFormat.Delimited; i <= FlatFileFormat.Mixed; i++)
                     if (string.Compare(i.ToString(), fmt, StringComparison.OrdinalIgnoreCase) == 0)
                         return i;
                 return FlatFileFormat.Delimited;
             }
             set 
-            { 
-                m_conn.Properties["TextQualifier"].SetValue(m_conn, value.ToString());
+            {
+                m_conn.Properties["Format"].SetValue(m_conn, value.ToString());
             }
         }
 
@@ -367,9 +398,10 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             }
             set
             {
-                m_conn.Properties["TextQualifier"].SetValue(m_conn, value);
                 if (Columns.Count > 0)
                     Columns[Columns.Count - 1].ColumnDelimiter = value;
+                else
+                    m_conn.Properties["RowDelimiter"].SetValue(m_conn, value);
             }
         }
 
@@ -465,14 +497,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
 
         public string Qualifier
-        {
+        {         
             get { return (string)m_conn.Properties["Qualifier"].GetValue(m_conn); }
-            set { m_conn.Properties["Qualifier"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
+            set { m_conn.SetQualifier(value); }
         }
     }
 
-    [ConnMgrID("ADO.NET")]
-    public class EzSqlAdoNetCM : EzConnectionManager
+    [ConnMgrID("ADO.NET:SQL")]
+    public class EzSqlAdoNetCM : EzAdoNetCM
     {
         public EzSqlAdoNetCM(EzPackage parent) : base(parent) { }
         public EzSqlAdoNetCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
@@ -653,6 +685,44 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 return;
             for (int i = 0; i < cols.Length; i++)
                 CacheCols[cols[i]].IndexPosition = i + 1;
+        }
+    }
+
+    [ConnMgrID("SMOServer")]
+    public class EzSMOServerCM : EzConnectionManager
+    {
+        public EzSMOServerCM(EzPackage parent) : base(parent) { }
+        public EzSMOServerCM(EzPackage parent, string name) : base(parent, name) { }
+        public EzSMOServerCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
+
+        public string SqlServerName
+        {
+            get { return (string)m_conn.Properties["SqlServerName"].GetValue(m_conn); }
+            set { m_conn.Properties["SqlServerName"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
+        }
+
+        public string UserName
+        {
+            get { return (string)m_conn.Properties["UserName"].GetValue(m_conn); }
+            set { m_conn.Properties["UserName"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
+        }
+
+        public string Password
+        {
+            get { return (string)m_conn.Properties["Password"].GetValue(m_conn); }
+            set { m_conn.Properties["Password"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
+        }
+
+        public string DataSourceID
+        {
+            get { return (string)m_conn.Properties["DataSourceID"].GetValue(m_conn); }
+            set { m_conn.Properties["DataSourceID"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
+        }
+
+        public bool UseWindowsAuthentication
+        {
+            get { return (bool)m_conn.Properties["UseWindowsAuthentication"].GetValue(m_conn); }
+            set { m_conn.Properties["UseWindowsAuthentication"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
         }
     }
 }

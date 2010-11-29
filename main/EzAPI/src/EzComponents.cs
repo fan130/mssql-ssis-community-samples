@@ -1,3 +1,8 @@
+// Copyright © Microsoft Corporation.  All Rights Reserved.
+// This code released under the terms of the 
+// Microsoft Public License (MS-PL, http://opensource.org/licenses/ms-pl.html.)
+
+
 using System;
 using System.Text;
 using System.IO;
@@ -10,7 +15,8 @@ using Microsoft.SqlServer.Dts.Runtime;
 using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline;
-
+using Microsoft.SqlServer.VSTAHosting;
+using Microsoft.DataTransformationServices.Controls;
 
 namespace Microsoft.SqlServer.SSIS.EzAPI
 {
@@ -298,7 +304,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public bool CustomPropertyExists(string name)
         {
-            foreach (IDTSCustomProperty100 p in Meta.CustomPropertyCollection)
+            return CustomPropertyExists(Meta.CustomPropertyCollection, name);
+        }
+
+        public bool CustomPropertyExists(IDTSCustomPropertyCollection100 props, string name)
+        {
+            foreach (IDTSCustomProperty100 p in props)
                 if (string.Compare(p.Name, name, StringComparison.OrdinalIgnoreCase) == 0)
                     return true;
             return false;
@@ -378,7 +389,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             foreach (PropertyInfo p in pi)
             {
                 string res;
-                ParameterInfo[] param = p.GetIndexParameters();
+                System.Reflection.ParameterInfo[] param = p.GetIndexParameters();
                 if (param.Length <= 0)
                 {
                     res = CompareProperty(p, origObj, newObj);
@@ -508,12 +519,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 			SetInputColumnProperty(0,columnName,propertyName,propertyValue);
 		}
 
-        public void SetOutputProperty(string propName, string propValue)
+        public void SetOutputProperty(string propName, object propValue)
         {
             SetOutputProperty(0, propName, propValue);
         }
 
-        public void SetOutputProperty(int outputIndex, string propName, string propValue)
+        public void SetOutputProperty(int outputIndex, string propName, object propValue)
         {
             Comp.SetOutputProperty(Meta.OutputCollection[outputIndex].ID, propName, propValue);
         }
@@ -648,12 +659,15 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             if (cacheValues)
                 foreach (IDTSCustomProperty100 p in input.InputColumnCollection[columnName].CustomPropertyCollection)
                     props[p.Name] = p.Value;
-	    IDTSVirtualInput100 virtualInput = input.GetVirtualInput();
-	    IDTSVirtualInputColumn100 virtualInputColumn = virtualInput.VirtualInputColumnCollection[columnName];
-	    m_comp.SetUsageType(input.ID, virtualInput, virtualInputColumn.LineageID, usageType);
+	        IDTSVirtualInput100 virtualInput = input.GetVirtualInput();
+	        IDTSVirtualInputColumn100 virtualInputColumn = virtualInput.VirtualInputColumnCollection[columnName];
+	        m_comp.SetUsageType(input.ID, virtualInput, virtualInputColumn.LineageID, usageType);
             if (cacheValues)
                 foreach (string key in props.Keys)
-                    input.InputColumnCollection[columnName].CustomPropertyCollection[key].Value = props[key];
+                {
+                    if (CustomPropertyExists(input.InputColumnCollection[columnName].CustomPropertyCollection, key))
+                        input.InputColumnCollection[columnName].CustomPropertyCollection[key].Value = props[key];
+                }
             if (initMeta)
                ReinitializeMetaData();
         }
@@ -746,7 +760,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public void LinkInputToOutput(int inputIndex, string colName)
         {
             if (InputColumnExists(inputIndex, colName))
-                return;
+                return; // return as this column is already linked
             IDTSInput100 input = m_meta.InputCollection[inputIndex];
             IDTSVirtualInput100 virtualInput = input.GetVirtualInput();
             IDTSVirtualInputColumn100 virtualInputColumn = virtualInput.VirtualInputColumnCollection[colName];
@@ -832,6 +846,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             m_comp.MapInputColumn(m_meta.InputCollection[0].ID, InputCol(inputColName).ID, ExternalCol(externalColName).ID);
         }
 
+        /*
+         * A patch suggested that the implementation of this method is incorrect.
+         * The implementation was changed, but the edit was reverted after the build broke a test.
+         * 
+         * Should further look into the correct implementation of this method.
+         */
         public void UpmapColumn(string inputColName)
         {
             InputCol(inputColName).MappedColumnID = -1;
@@ -918,7 +938,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public override void ReinitializeMetaDataNoCast()
         {
-            if (m_meta.RuntimeConnectionCollection[0].ConnectionManager == null || string.IsNullOrEmpty(m_meta.RuntimeConnectionCollection[0].ConnectionManager.ConnectionString))
+            if (m_meta.RuntimeConnectionCollection[0].ConnectionManager == null 
+               || string.IsNullOrEmpty(m_meta.RuntimeConnectionCollection[0].ConnectionManager.ConnectionString)
+               || string.Compare(m_meta.RuntimeConnectionCollection[0].ConnectionManager.ConnectionString, "Provider=Microsoft.Jet.OLEDB.4.0;", true) == 0 )
                 return;
             AcquireConnections();
             try
@@ -958,9 +980,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                     m_comp.MapInputColumn(input.ID, inputColumn.ID, extMetadataColumn.ID);
                 }
             }
-            AcquireConnections();
-            m_comp.ReinitializeMetaData();
-            ReleaseConnections();
+           
         }
     }
 
@@ -979,6 +999,20 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         {
             get { return (AccessMode)m_meta.CustomPropertyCollection["AccessMode"].Value; }
             set { m_comp.SetComponentProperty("AccessMode", value.GetHashCode()); ReinitializeMetaData(); } 
+        }
+
+        public override void ReinitializeMetaDataNoCast()
+        {
+            base.ReinitializeMetaDataNoCast();
+            // Commenting out this code as it is breaking OLEDB Src/Dest.  Talking with Evgeny, he mentioned this 
+            // was required for some OLE DB Component and so I will comment it out now, that way if we need it later, 
+            // we can uncomment and test with any failing scenarios.
+
+            //AcquireConnections();
+            //m_comp.ReinitializeMetaData();
+            //ReleaseConnections();
+
+
         }
 
         public string SqlCommand 
@@ -1016,14 +1050,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{BCEFE59B-6819-47F7-A125-63753B33ABB7}")]
+    [CompID("{165A526D-D5DE-47FF-96A6-F8274C19826B}")]
     public class EzOleDbSource : EzOleDbAdapter
     {
         public EzOleDbSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
         public EzOleDbSource(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
     }
 
-    [CompID("{5A0B62E8-D91D-49F5-94A5-7BE58DE508F0}")]
+    [CompID("{4ADA7EAA-136C-4215-8098-D7A7C27FC0D1}")]
     public class EzOleDbDestination : EzOleDbAdapter
     {
         public EzOleDbDestination(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1038,7 +1072,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public bool FastLoadKeepNulls
         {
-            get { return (bool)Meta.CustomPropertyCollection["FastLoadOptions"].Value; }
+            get { return (bool)Meta.CustomPropertyCollection["FastLoadKeepNulls"].Value; }
             set { Comp.SetComponentProperty("FastLoadKeepNulls", value); }
         }
 
@@ -1047,9 +1081,15 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             get { return (int)Meta.CustomPropertyCollection["FastLoadMaxInsertCommitSize"].Value; }
             set { Comp.SetComponentProperty("FastLoadMaxInsertCommitSize", value); }
         }
+
+        public string FastLoadOptions
+        {
+            get { return (string)Meta.CustomPropertyCollection["FastLoadOptions"].Value; }
+            set { Comp.SetComponentProperty("FastLoadOptions", value); }
+        }
     }
 
-    [CompID("{5ACD952A-F16A-41D8-A681-713640837664}")]
+    [CompID("{D23FD76B-F51D-420F-BBCB-19CBF6AC1AB4}")]
     public class EzFlatFileSource : EzAdapter
     {
         public EzFlatFileSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1073,7 +1113,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{D658C424-8CF0-441C-B3C4-955E183B7FBA}")]
+    [CompID("{8DA75FED-1B7C-407D-B2AD-2B24209CCCA4}")]
     public class EzFlatFileDestination : EzAdapter
     {
         public EzFlatFileDestination(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1100,10 +1140,20 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         // Defines all input columns in the corresponding FlatFile connection manager
         public void DefineColumnsInCM()
         {
-            DefineColumnsInCM(false);
+            DefineColumnsInCM(FlatFileFormat.Delimited);
         }
 
         public void DefineColumnsInCM(bool reinitall)
+        {
+            DefineColumnsInCM(FlatFileFormat.Delimited, reinitall);
+        }
+
+        public void DefineColumnsInCM(FlatFileFormat format)
+        {
+            DefineColumnsInCM(format, false);
+        }
+
+        public void DefineColumnsInCM(FlatFileFormat format, bool reinitall)
         {
             if (Connection == null)
                 return;
@@ -1121,12 +1171,58 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 fc.DataType = c.DataType;
                 fc.DataPrecision = c.Precision;
                 fc.DataScale = c.Scale;
+                
+                switch (c.DataType)
+                {
+                    case DataType.DT_NTEXT:
+                    case DataType.DT_STR:
+                    case DataType.DT_TEXT:
+                    case DataType.DT_WSTR:
+                        fc.ColumnWidth = c.Length;
+                        fc.MaximumWidth = c.Length;
+                        break;
+                    default:
+                        fc.ColumnWidth = FlatFileConnectionManagerUtils.GetFixedColumnWidth(c.DataType);
+                        break;
+                }
+
                 (fc as IDTSName100).Name = c.Name;
             }
-            cm.ColumnDelimiter = ",";
+
             cm.ColumnNamesInFirstDataRow = true;
-            cm.ColumnType = FlatFileColumnType.Delimited;
             cm.RowDelimiter = "\r\n";
+
+            switch (format)
+            {
+                case FlatFileFormat.Delimited:
+                    cm.ColumnType = FlatFileColumnType.Delimited;
+                    cm.ColumnDelimiter = ",";
+                    break;
+                case FlatFileFormat.FixedWidth:
+                    cm.ColumnType = FlatFileColumnType.FixedWidth;
+                    cm.ColumnDelimiter = null;
+                    break;
+                case FlatFileFormat.Mixed: // "FixedWidth with row delimiters"
+                    cm.ColumnType = FlatFileColumnType.FixedWidth;
+                    cm.ColumnDelimiter = null;
+
+                    IDTSConnectionManagerFlatFileColumn100 fc = cm.Columns.Add();
+                    fc.DataType = DataType.DT_WSTR;
+                    fc.ColumnType = FlatFileColumnType.Delimited.ToString();
+                    fc.ColumnDelimiter = "\r\n";
+                    fc.ColumnWidth = 0;
+                    (fc as IDTSName100).Name = "Row delimiter column";
+                    break;
+                case FlatFileFormat.RaggedRight:
+                    cm.ColumnType = FlatFileColumnType.FixedWidth;
+                    cm.ColumnDelimiter = null;
+
+                    // update the last column to be delimited
+                    cm.Columns[cm.Columns.Count - 1].ColumnType = FlatFileColumnType.Delimited.ToString();
+                    cm.Columns[cm.Columns.Count - 1].ColumnDelimiter = "\r\n";
+                    break;
+            }
+
             if (reinitall)
                 cm.Parent.ReinitializeMetaData();
             else
@@ -1180,12 +1276,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
     [CompID("Microsoft.SqlServer.Dts.Pipeline.ADONETDestination, Microsoft.SqlServer.ADONETDest, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzAdoNetDestination : EzAdapter
     {
-        protected EzAdoNetDestination(EzDataFlow dataFlow) : base(dataFlow) { }
-        protected EzAdoNetDestination(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+        public EzAdoNetDestination(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzAdoNetDestination(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
 
         protected override void VerifyConnection()
         {
-            if (m_connection != null && string.Compare(m_connection.CM.CreationName, "ADO.NET", StringComparison.OrdinalIgnoreCase) != 0)
+            if (m_connection != null && string.Compare(m_connection.CM.CreationName.Substring(0, 7), "ADO.NET", StringComparison.OrdinalIgnoreCase) != 0)
                 throw new IncorrectAssignException(string.Format("Cannot assign {0} connection to EzAdoNetDestination", m_connection.CM.CreationName));
         }
 
@@ -1208,15 +1304,15 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{1ACA4459-ACE0-496F-814A-8611F9C27E23}")]
+    [CompID("{EC139FBC-694E-490B-8EA7-35690FB0F445}")]
     public class EzMultiCast : EzComponent
     {
-        public static string CompID { get { return "{1ACA4459-ACE0-496F-814A-8611F9C27E23}"; } }
+        public static string CompID { get { return "{EC139FBC-694E-490B-8EA7-35690FB0F445}"; } }
         public EzMultiCast(EzDataFlow dataFlow) : base(dataFlow)	{ }        
         public EzMultiCast(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }  
     }
 
-    [CompID("{2932025B-AB99-40F6-B5B8-783A73F80E24}")]
+    [CompID("{49928E82-9C4E-49F0-AABE-3812B82707EC}")]
     public class EzDerivedColumn : EzComponent
     {
         public EzDerivedColumn(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1269,7 +1365,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{07127A7C-164B-422A-AD1F-24BE39B4DB38}")]
+    [CompID("{5B1A3FF5-D366-4D75-AD1F-F19A36FCBEDB}")]
     public class EzSortTransform : EzComponent
     {
         public EzSortTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1362,7 +1458,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{8E61C8F6-C91D-43B6-97EB-3423C06571CC}")]
+    [CompID("{93FFEC66-CBC8-4C7F-9C6A-CB1C17A7567D}")]
     public class EzOleDbCommand : EzAdapter
     {
         public EzOleDbCommand(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1438,7 +1534,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public IEnumerator GetEnumerator() { return MapIDs.GetEnumerator(); }
     }
 
-    [CompID("{27648839-180F-45E6-838D-AFF53DF682D2}")]
+    [CompID("{671046B0-AA63-4C9F-90E4-C06E0B710CE3}")]
     public class EzLookup : EzComponent
     {
         public EzLookup(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1688,7 +1784,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{A236DD44-4409-433E-A1CE-283DA18F4E0F}")]
+    [CompID("{BF818E79-2C1C-410D-ADEA-B2D1A04FED01}")]
     public class EzCacheTransform : EzComponent
     {
         public EzCacheTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1754,7 +1850,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{BD06A22E-BC69-4AF7-A69B-C44C2EF684BB}")]
+    [CompID("{62B1106C-7DB8-4EC8-ADD6-4C664DFFC54A}")]
     public class EzDataConvert : EzComponent
     {
         public EzDataConvert(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1763,20 +1859,53 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public void Convert(string inColName, string newColName, DataType dataType, int length, int precision, int scale, int codePage)
         {
             LinkInputToOutput(inColName);
-            SetOutputColumnProperty(newColName, "SourceInputColumnLineageID", InputCol(inColName).LineageID);
-            SetOutputColumnDataTypeProperties(newColName, dataType, length, precision, scale, codePage);
+            SetOutputColumnProperty(0, newColName, "SourceInputColumnLineageID", InputCol(inColName).LineageID, false);
+            SetOutputColumnDataTypeProperties(0, newColName, dataType, length, precision, scale, codePage, false);
         }
 
-        public string ConvertedColumn(string inputColName)
+        public string ConvertInputColumn(string outputColName)
         {
-            int lineageId = InputCol(inputColName).LineageID;
-            foreach (IDTSOutputColumn100 c in Meta.OutputCollection[0].OutputColumnCollection)
-                if (OutputColumnPropertyExists(c.Name, "SourceInputColumnLineageID") && 
-                    (int)c.CustomPropertyCollection["SourceInputColumnLineageID"].Value == lineageId)
-                {
+            int lineageId = (int)OutputCol(outputColName).CustomPropertyCollection["SourceInputColumnLineageID"].Value;
+            if (lineageId == 0)
+                return null;
+            foreach (IDTSInputColumn100 c in Meta.InputCollection[0].InputColumnCollection)
+                if (c.LineageID == lineageId)
                     return c.Name;
-                }
             return null;
+        }
+
+        internal struct OutputColProps
+        {
+            public string InputColName;
+            public DataType DataType;
+            public int Length;
+            public int Precision;
+            public int Scale;
+            public int CodePage;
+        }
+
+        public override void ReinitializeMetaDataNoCast()
+        {
+            Dictionary<string, OutputColProps> cols = new Dictionary<string, OutputColProps>();
+            foreach (IDTSOutputColumn100 c in Meta.OutputCollection[0].OutputColumnCollection)
+            {
+                OutputColProps p = new OutputColProps();
+                p.InputColName = ConvertInputColumn(c.Name);
+                p.DataType = c.DataType;
+                p.Length = c.Length;
+                p.Precision = c.Precision;
+                p.Scale = c.Scale;
+                p.CodePage = c.CodePage;
+                cols.Add(c.Name, p);
+            }
+            base.ReinitializeMetaDataNoCast();
+            foreach (string colName in cols.Keys)
+            {
+                if (!VirtualInputColumnExists(cols[colName].InputColName))
+                    continue;
+                Convert(cols[colName].InputColName, colName, cols[colName].DataType, cols[colName].Length,
+                    cols[colName].Precision, cols[colName].Scale, cols[colName].CodePage); 
+            }
         }
 
         protected ColumnCustomPropertyIndexer<bool> m_fastParse;
@@ -1871,7 +2000,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{9ABE8DF3-0052-42DB-8B18-2089E1D1D1B7}")]
+    [CompID("{5B201335-B360-485C-BB93-75C34E09B3D3}")]
     public class EzAggregate : EzComponent
     {
         public EzAggregate(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1960,6 +2089,893 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                     m_countDistinctScale = new ColumnCustomPropertyIndexer<AggrKeyScale>(this, "CountDistinctScale", IndexerType.Output);
                 return m_countDistinctScale;
             }
+        }
+
+        public override void ReinitializeMetaDataNoCast()
+        {
+            string[] countAllColumn = new string[Meta.OutputCollection.Count];
+            int i = 0;
+            foreach (IDTSOutput100 o in Meta.OutputCollection)
+            {
+                foreach (IDTSOutputColumn100 c in o.OutputColumnCollection)
+                    if (c.CustomPropertyCollection["AggregationType"].Value.ToString() == Microsoft.SqlServer.SSIS.EzAPI.AggrFunc.CountAll.GetHashCode().ToString())
+                        countAllColumn[i] = c.Name;
+                i++;
+            }
+            base.ReinitializeMetaDataNoCast();
+            for (int j = 0; j < Meta.OutputCollection.Count; j++)
+            {
+                if (string.IsNullOrEmpty(countAllColumn[j]))
+                    continue;
+                AggrFunc[j, "*", countAllColumn[j], false] = Microsoft.SqlServer.SSIS.EzAPI.AggrFunc.CountAll;
+            }
+        }
+    }
+
+
+    [CompID("{73B2FF41-8181-4B0F-A2AA-A9E553BD18D5}")]
+    public class EzRandomSrc : EzComponent
+    {
+       public EzRandomSrc(EzDataFlow dataFlow) : base(dataFlow)	{ }        
+       public EzRandomSrc(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }  
+     
+        public uint Seed 
+        {
+            get { return (uint) m_meta.CustomPropertyCollection["Seed"].Value; }
+            set { m_comp.SetComponentProperty("Seed", value); ReinitializeMetaData(); }
+        }
+        
+        public uint RowCount
+        {
+            get { return (uint) m_meta.CustomPropertyCollection["Row Count"].Value; }
+            set { m_comp.SetComponentProperty("Row Count", value); ReinitializeMetaData(); }
+        }
+    }
+
+    [CompID("{8E35AE9F-DD0E-46FD-8C93-747803EB9010}")]
+    public class EzCheckSumDest : EzComponent
+    {
+        public EzCheckSumDest(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzCheckSumDest(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        public override void ReinitializeMetaDataNoCast()
+        {
+            base.ReinitializeMetaDataNoCast();
+            LinkAllInputsToOutputs();
+        }
+
+        public string CheckSumVar
+        {
+            get { return (string)Meta.CustomPropertyCollection["Checksum Variable Name"].Value; }
+            set { SetComponentProperty("Checksum Variable Name", value); }
+        }
+
+        public int HashChunkSize
+        {
+            get { return (int)Meta.CustomPropertyCollection["Hash Chunk Size"].Value; }
+            set { SetComponentProperty("Hash Chunk Size", value); }
+        }
+
+        public bool RowsOrdered
+        {
+            get { return (bool)Meta.CustomPropertyCollection["Rows Are Ordered"].Value; }
+            set { SetComponentProperty("Rows Are Ordered", value); }
+        }
+    }
+
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.ScriptComponentHost, Microsoft.SqlServer.TxScript, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzScript : EzComponent
+    {
+        public const string VisualBasic = "VisualBasic";
+        public const string CSharp = "CSharp";
+
+        public class BinaryCodeIndexer
+        {
+            EzScript obj;
+            internal BinaryCodeIndexer(EzScript parent) { obj = parent; }
+            byte[] this[string asmName]
+            {
+                get { return obj.host.GetBinaryCode(asmName); }
+                set { obj.host.PutBinaryCode(asmName, value); }
+            }
+        }
+       
+        public EzScript(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzScript(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        private ScriptComponentHost host { get { return (Comp as IDTSManagedComponent100).InnerObject as ScriptComponentHost; } }
+      
+        // VSTA scripting feature is undocumented, so the corresponding EzAPI functionality is marked obsolete.
+        [System.Obsolete("VSTA scripting is undocumented.")]
+        public VSTAComponentScriptingEngine ScriptingEngine
+        {
+            get
+            {
+                return typeof(ScriptComponentHost).InvokeMember("CurrentScriptingEngine", BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Instance,
+                    null, host, null) as VSTAComponentScriptingEngine;
+            }
+        }
+        
+
+        public string ReadOnlyVars
+        {
+            get { return (string)Meta.CustomPropertyCollection["ReadOnlyVariables"].Value; }
+            set { SetComponentProperty("ReadOnlyVariables", value); }
+        }
+
+        public string ReadWriteVars
+        {
+            get { return (string)Meta.CustomPropertyCollection["ReadWriteVariables"].Value; }
+            set { SetComponentProperty("ReadWriteVariables", value); }
+        }
+
+        public string ScriptLanguage
+        {
+            get { return (string)Meta.CustomPropertyCollection["ScriptLanguage"].Value; }
+            set { SetComponentProperty("ScriptLanguage", value); }
+        }
+        
+        public string ProjectName
+        {
+            get { return (string)Meta.CustomPropertyCollection["VSTAProjectName"].Value; }
+            set { SetComponentProperty("VSTAProjectName", value); }
+        }
+
+        // 0 - filename, 1 - code, 2 - filename, 3 - code, etc.
+        public string[] SourceCode
+        {
+            get { return (string[])Meta.CustomPropertyCollection["SourceCode"].Value; }
+            set { SetComponentProperty("SourceCode", value); }
+        }
+
+        public void PutSourceFile(string fileName, string srcCode)
+        {
+            host.PutSourceCode(fileName, srcCode);
+        }
+
+        private BinaryCodeIndexer m_binaryCode;
+        public BinaryCodeIndexer BinaryCode
+        {
+            get
+            {
+                if (m_binaryCode == null)
+                    m_binaryCode = new BinaryCodeIndexer(this);
+                return m_binaryCode;
+            }
+        }
+
+        public void InitNewScript()
+        {
+            host.ShowIDE();
+            host.CloseIDE();
+        }
+
+        // Marking as obsolete methods that are dependent upon VSTA scripting functionality.
+        [System.Obsolete("VSTA scripting is undocumented.")]
+        public bool AddCodeFile(string fileName, string srcCode)
+        {
+            ScriptingEngine.LoadScriptFromStorage();
+            if (!ScriptingEngine.AddCodeFile(fileName, srcCode))
+                return false;
+            return ScriptingEngine.SaveScriptToStorage();
+        }
+
+        [System.Obsolete("VSTA scripting is undocumented.")] 
+        public bool Build()
+        {
+            ScriptingEngine.LoadScriptFromStorage();
+            if (!ScriptingEngine.Build())
+                return false;
+            return ScriptingEngine.SaveScriptToStorage();
+        }
+        
+    }
+
+    public enum XMLAccessMode
+    {
+        FileFromLocation = 0,
+        FileFromVariable = 1,
+        DataFromVariable = 2
+    }
+
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.XmlSourceAdapter, Microsoft.SqlServer.XmlSrc, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzXMLSource : EzComponent
+    {
+        public EzXMLSource(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzXMLSource(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        public XMLAccessMode AccessMode
+        {
+            get { return (XMLAccessMode)Meta.CustomPropertyCollection["AccessMode"].Value; }
+            set { SetComponentProperty("AccessMode", value.GetHashCode()); }
+        }
+
+        public bool UseInlineSchema
+        {
+            get { return (bool)Meta.CustomPropertyCollection["UseInlineSchema"].Value; }
+            set { SetComponentProperty("UseInlineSchema", value); }
+        }
+
+        public string XMLSchemaDefinition
+        {
+            get { return (string)Meta.CustomPropertyCollection["XMLSchemaDefinition"].Value; }
+            set { SetComponentProperty("XMLSchemaDefinition", value); }
+        }
+
+        public string XMLDataSource
+        {
+            get 
+            {
+                string propName = "XMLData";
+                if (AccessMode != XMLAccessMode.FileFromLocation)
+                    propName = "XMLDataVariable";
+                return (string)Meta.CustomPropertyCollection[propName].Value; 
+            }
+            set 
+            {
+                string propName = "XMLData";
+                if (AccessMode != XMLAccessMode.FileFromLocation)
+                    propName = "XMLDataVariable";
+                SetComponentProperty(propName, value);
+                ReinitializeMetaData();
+            }
+        }
+    }
+
+    [CompID("{A4B1E1C8-17F3-46C8-AAD0-34F0C6FE42DE}")]
+    public class EzExcelSource : EzAdapter
+    {
+        public EzExcelSource(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzExcelSource(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        protected override void VerifyConnection()
+        {
+            if (m_connection != null && string.Compare(m_connection.CM.CreationName.Substring(0, 5), "EXCEL", StringComparison.OrdinalIgnoreCase) != 0)
+                throw new IncorrectAssignException(string.Format("Cannot assign {0} connection to EzExcelSource", m_connection.CM.CreationName));
+        }
+    }
+
+    [CompID("{C9269E28-EBDE-4DED-91EB-0BF42842F9F4}")]
+    public class EzExcelDest : EzAdapter
+    {
+        public EzExcelDest(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzExcelDest(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        protected override void VerifyConnection()
+        {
+            if (m_connection != null && string.Compare(m_connection.CM.CreationName.Substring(0, 5), "EXCEL", StringComparison.OrdinalIgnoreCase) != 0)
+                throw new IncorrectAssignException(string.Format("Cannot assign {0} connection to EzExcelDest", m_connection.CM.CreationName));
+        }
+    }
+
+    public class ColumnMap
+    {
+        EzComponent m_obj;
+        string m_outCol;
+        int m_outColLineageID;
+
+        public ColumnMap(EzComponent obj, string outCol)
+        {
+            m_outCol = outCol;
+            m_obj = obj;
+            m_outColLineageID = m_obj.OutputCol(outCol).LineageID;
+        }
+
+        // Indexing inputs so more than two inputs can be accessed.
+        public string this[int i]
+        {
+            get
+            {
+                // Finds the column name in input i that is mapped to the output column.
+                foreach (IDTSInputColumn100 c in m_obj.Meta.InputCollection[i].InputColumnCollection)
+                    if ((int)c.CustomPropertyCollection["OutputColumnLineageID"].Value == m_outColLineageID)
+                        return c.Name;
+                return null;
+            }
+
+            set
+            {
+                string prevInCol = this[i];
+                // If there exists a column in input i already mapped to the output column,
+                //  then remove the input-to-output column mapping.
+                if (prevInCol != null) 
+                    m_obj.InputCol(i, prevInCol).CustomPropertyCollection["OutputColumnLineageID"].Value = 0;
+                if (value == null)
+                    return;
+
+                // Map the column with the assigned name in input i to the output column.
+                IDTSInputColumn100 inCol = m_obj.InputCol(i, value);
+                inCol.CustomPropertyCollection["OutputColumnLineageID"].Value = m_outColLineageID;
+
+                // If input i is the has the only column mapped to the output column,
+                //  then assign the output column the data type properties of the input column
+                if (NoMapping(i))
+                    m_obj.SetOutputColumnDataTypeProperties(m_outCol, inCol.DataType, inCol.Length, inCol.Precision,
+                        inCol.Scale, inCol.CodePage);
+            }
+        }
+
+        /*
+         * Returns true if no input column (other than those from input exceptCol) map to the output column;
+         *  otherwise returns false.
+         */
+        public bool NoMapping(int exceptCol)
+        {
+            for (int inputInd = 0; inputInd < m_obj.InputCount; inputInd++)
+                if (inputInd != exceptCol && this[inputInd] != null)
+                    return false;
+            return true;
+        }
+
+        /*
+         * Returns true if no input column maps to the output column;
+         *  otherwise returns false.
+         */
+        public bool NoMapping()
+        {
+            for (int inputInd = 0; inputInd < m_obj.InputCount; inputInd++)
+                if (this[inputInd] != null)
+                    return false;
+            return true;
+        }
+
+        // Property maintained from legacy code, implementation altered for new functionality.
+        public string InputColumn1
+        {
+            get
+            {
+                return this[0];
+            }
+            set
+            {
+                this[0] = value;
+            }
+        }
+
+        public string InputColumn2
+        {
+            get
+            {
+                return this[1];
+            }
+            set
+            {
+                this[1] = value;
+            }
+        }
+
+        public void SetInputColumns(string inCol1, string inCol2)
+        {
+            this[0] = inCol1;
+            this[1] = inCol2;
+        }
+    }
+
+    public class ColumnMapper
+    {
+        EzComponent m_obj;
+        public ColumnMapper(EzComponent obj)
+        {
+            m_obj = obj;
+        }
+
+        public ColumnMap this[string outputColName]
+        {
+            get
+            {
+                if (!m_obj.OutputColumnExists(outputColName))
+                    m_obj.InsertOutputColumn(outputColName);
+                return new ColumnMap(m_obj, outputColName);
+            }
+        }
+    }
+
+    public class EzUnionAndMergeBase : EzComponent
+    {
+        public EzUnionAndMergeBase(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzUnionAndMergeBase(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+        
+        private ColumnMapper m_map;
+        public ColumnMapper Map
+        {
+            get
+            {
+                if (m_map == null)
+                    m_map = new ColumnMapper(this);
+                return m_map;
+            }
+        }
+
+        private void RemoveUnreferencedInputColumns(int inputInd)
+        {
+            for (int i = Meta.InputCollection[inputInd].InputColumnCollection.Count - 1; i >= 0; --i)
+                if ((int)Meta.InputCollection[inputInd].InputColumnCollection[i].CustomPropertyCollection["OutputColumnLineageID"].Value == 0)
+                    Meta.InputCollection[inputInd].InputColumnCollection.RemoveObjectByIndex(i);
+        }
+
+        public override void ReinitializeMetaDataNoCast()
+        {
+            for (int i = Meta.OutputCollection[0].OutputColumnCollection.Count - 1; i >= 0; --i )
+            {
+                string colName = Meta.OutputCollection[0].OutputColumnCollection[i].Name;
+                // If there is no mapping to this output column, then remove it.
+                // Note: this behavior is different than in BIDS, where unmapped output columns are kept.
+                if (Map[colName].NoMapping())
+                {
+                    Meta.OutputCollection[0].OutputColumnCollection.RemoveObjectByIndex(i);
+                }
+            }
+
+            for (int i = 0; i < InputCount; i++)
+            {
+                RemoveUnreferencedInputColumns(i);
+            }
+
+            base.ReinitializeMetaDataNoCast();
+        }
+    }
+
+    [CompID("{D3FC84FA-748F-40B4-A967-F1574F917BE5}")]
+    public class EzMerge: EzUnionAndMergeBase
+    {
+        public EzMerge(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzMerge(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+    }
+
+    [CompID("{4D9F9B7C-84D9-4335-ADB0-2542A7E35422}")]
+    public class EzUnionAll : EzUnionAndMergeBase
+    {
+        public EzUnionAll(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzUnionAll(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+    }
+
+    /// <summary>
+    /// This is class for accessing of output aliases of input columns (For example - see sort transform)
+    /// </summary>
+    public class OutputIndexer<T>
+    {
+        EzComponent m_obj;
+        string m_propname;
+        const string friendly_propname = "FriendlyExpression";
+        const string expression_propname = "Expression";
+        const string order_propname = "EvaluationOrder";
+
+        public OutputIndexer(EzComponent obj, string propname) { m_obj = obj; m_propname = propname; }
+
+        public T this[string outputName]
+        {
+            get
+            {
+                int ind = -1;
+                for (int i = 0; i < m_obj.Meta.OutputCollection.Count; ++i)
+                    if (string.Compare(m_obj.Meta.OutputCollection[i].Name, outputName, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        ind = i;
+                        break;
+                    }
+                if (ind < 0)
+                    throw new PropertyException(string.Format("Output {0} does not exist.", outputName), null);
+                return this[ind];
+            }
+            set
+            {
+                int ind = -1;
+                for (int i = 0; i < m_obj.Meta.OutputCollection.Count; ++i)
+                    if (string.Compare(m_obj.Meta.OutputCollection[i].Name, outputName, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        ind = i;
+                        break;
+                    }
+                if (ind < 0)
+                {
+                    m_obj.InsertOutput();
+                    ind = m_obj.Meta.OutputCollection.Count - 1;
+                    m_obj.Meta.OutputCollection[ind].Name = outputName;
+                }
+                this[ind] = value;
+            }
+        }
+
+        public T this[int outputIndex]
+        {
+            get
+            {
+                return (T)m_obj.Meta.OutputCollection[outputIndex].CustomPropertyCollection[m_propname].Value;
+            }
+            set
+            {
+                m_obj.Meta.OutputCollection[outputIndex].CustomPropertyCollection[m_propname].Value = value;
+
+                /* If a FriendlyExpression value is being assigned,
+                 * then also set the Expression and Order properties
+                 * so that the component will be able to function.
+                 */
+                if (m_propname == friendly_propname)
+                {
+                    (m_obj as EzConditionalSplit).Expression[outputIndex] = GetExpression(value as string);
+                    (m_obj as EzConditionalSplit).Order[outputIndex] = GetNextOrder(); // assumes order is unassigned 
+                    // and user assigns FriendlyExpressions in order of evaluation
+                }
+            }
+        }
+        
+        /*
+         * Replaces all instances of column names in the first input with their lineage ids
+         */
+        private string GetExpression(string friendly)
+        {
+            foreach (IDTSInputColumn100 col in m_obj.Meta.InputCollection[0].InputColumnCollection)
+            {
+                string colName = col.Name;
+                friendly = friendly.Replace(colName, "#" + col.LineageID);
+            }
+            return friendly;
+        }
+
+        /*
+         * Returns the sequential order of evaluation, by counting one less than the number of outputs
+         * that have been assigned FriendlyExpression properties.
+         */
+        private uint GetNextOrder()
+        {
+            uint numberFriendlyExpressions = 0;
+            foreach(IDTSOutput100 output in m_obj.Meta.OutputCollection)
+            {
+                foreach(IDTSCustomProperty100 prop in output.CustomPropertyCollection)
+                {
+                    if(prop.Name == friendly_propname)
+                    {
+                        numberFriendlyExpressions++;
+                    }
+                }
+            }
+            return numberFriendlyExpressions - 1;
+        }
+    }
+
+    [CompID("{3AE878C6-0D6C-4F48-8128-40E00E9C1B7D}")]
+    public class EzConditionalSplit : EzComponent
+    {
+        public EzConditionalSplit(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzConditionalSplit(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        /*
+         * Indexes over outputs to get/set a user friendly format of the condition.
+         */
+        private OutputIndexer<string> m_condition;
+        public OutputIndexer<string> Condition
+        {
+            get
+            {
+                if (m_condition == null)
+                    m_condition = new OutputIndexer<string>(this, "FriendlyExpression");
+                return m_condition;
+            }
+        }
+
+        /*
+         * Indexes over outputs to get/set the string representing the actual string that is evaluated.
+         * Columns are referenced by IDs instead of column names.
+         */
+        private OutputIndexer<string> m_expression;
+        public OutputIndexer<string> Expression
+        {
+            get
+            {
+                if (m_expression == null)
+                    m_expression = new OutputIndexer<string>(this, "Expression");
+                return m_expression;
+            }
+        }
+        
+        /*
+         * Indexes over outputs to get/set the order in which expressions are evaluated.
+         */
+        private OutputIndexer<uint> m_order;
+        public OutputIndexer<uint> Order
+        {
+            get
+            {
+                if (m_order == null)
+                    m_order = new OutputIndexer<uint>(this, "EvaluationOrder");
+                return m_order;
+            }
+        }
+
+        public int DefaultOutput
+        {
+            get
+            {
+                // Clearer implementation: returns the index of the default output, or 0 if there is none.
+                for (int outInd = 0; outInd < Meta.OutputCollection.Count; outInd++)
+                {
+                    if (CustomPropertyExists(Meta.OutputCollection[outInd].CustomPropertyCollection, "IsDefaultOut"))
+                    {
+                        return outInd;
+                    }
+                }
+                return 0;
+
+                /*
+                int i = 0;
+                foreach (IDTSOutput100 o in Meta.OutputCollection)
+                {
+                    if (CustomPropertyExists(o.CustomPropertyCollection, "IsDefaultOut"))
+                        return i;
+                    ++i;
+                }
+                return 0;
+                 */
+            }
+        }
+    }
+
+    public enum MergeJoinType
+    {
+        Full = 0,
+        Left = 1,
+        Inner = 2
+    }
+
+    [CompID("{A18A4D58-7C7A-4448-8B98-AE2CEFE81B4C}")]
+    public class EzMergeJoin : EzComponent
+    {
+        public EzMergeJoin(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzMergeJoin(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        public MergeJoinType JoinType
+        {
+            get { return (MergeJoinType)Meta.CustomPropertyCollection["JoinType"].Value; }
+            set { SetComponentProperty("JoinType", value.GetHashCode());}
+        }
+
+        public int MaxBuffersPerInput
+        {
+            get { return (int)Meta.CustomPropertyCollection["MaxBuffersPerInput"].Value; }
+            set { SetComponentProperty("MaxBuffersPerInput", value); }
+        }
+
+        public bool TreatNullsAsEqual
+        {
+            get { return (bool)Meta.CustomPropertyCollection["TreatNullsAsEqual"].Value; }
+            set { SetComponentProperty("TreatNullsAsEqual", value); }
+        }
+
+        public int NumKeyColumns
+        {
+            get { return (int)Meta.CustomPropertyCollection["NumKeyColumns"].Value; }
+            set { SetComponentProperty("NumKeyColumns", value); }
+        }
+
+        private OutputAliasIndexer m_outputAlias;
+        public OutputAliasIndexer OutputAlias
+        {
+            get
+            {
+                if (m_outputAlias == null)
+                    m_outputAlias = new OutputAliasIndexer(this, "InputColumnID");
+                return m_outputAlias;
+            }
+        }
+
+        private OutputIndexer<string> m_condition;
+        public OutputIndexer<string> Condition
+        {
+            get
+            {
+                if (m_condition == null)
+                    m_condition = new OutputIndexer<string>(this, "FriendlyExpression");
+                return m_condition;
+            }
+        }
+
+        private OutputIndexer<uint> m_order;
+        public OutputIndexer<uint> Order
+        {
+            get
+            {
+                if (m_order == null)
+                    m_order = new OutputIndexer<uint>(this, "EvaluationOrder");
+                return m_order;
+            }
+        }
+
+        public int DefaultOutput
+        {
+            get
+            {
+                int i = 0;
+                foreach (IDTSOutput100 o in Meta.OutputCollection)
+                {
+                    if (CustomPropertyExists(o.CustomPropertyCollection, "IsDefaultOut"))
+                        return i;
+                    ++i;
+                }
+                return 0;
+            }
+        }
+    }
+
+    public enum SCDRowChangeType
+    {
+        AllNew = 0,
+        Detect = 1
+    }
+
+    // Indices of outputs of slowly changing dimention. These indices are fixed
+    public enum SCDOutput: int
+    {
+        Unchanged = 0,
+        New = 1,
+        FixedAttr = 2,
+        ChangingAttrUpdates = 3,
+        HistoricalAttr = 4,
+        InferredMemberUpdates = 5
+    }
+
+    public enum SCDColumnChangeType
+    {
+        Other = 0,
+        Key = 1,
+        ChangingAttribute = 2,
+        HistoricalAttribute = 3,
+        FixedAttribute = 4
+    }
+
+    [CompID("{70909A92-ECE9-486D-B17E-30EDE908849E}")]
+    public class EzSCD : EzAdapter
+    {
+        public EzSCD(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzSCD(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        protected override void VerifyConnection()
+        {
+            if (m_connection != null && string.Compare(m_connection.CM.CreationName, "OLEDB", StringComparison.OrdinalIgnoreCase) != 0)
+                throw new IncorrectAssignException(string.Format("Cannot assign {0} connection to EzOleDbAdapter", m_connection.CM.CreationName));
+        }
+
+        public string CurrentRowWhere
+        {
+            get { return (string)Meta.CustomPropertyCollection["CurrentRowWhere"].Value; }
+            set { Comp.SetComponentProperty("CurrentRowWhere", value); }
+        }
+
+        public bool EnableInferredMember
+        {
+            get { return (bool)Meta.CustomPropertyCollection["EnableInferredMember"].Value; }
+            set { Comp.SetComponentProperty("EnableInferredMember", value); }
+        }
+        
+        public string InferredMemberIndicator
+        {
+            get { return (string)Meta.CustomPropertyCollection["InferredMemberIndicator"].Value; }
+            set { Comp.SetComponentProperty("InferredMemberIndicator", value); }
+        }
+
+        public bool FailOnFixedAttributeChange
+        {
+            get { return (bool)Meta.CustomPropertyCollection["FailOnFixedAttributeChange"].Value; }
+            set { Comp.SetComponentProperty("FailOnFixedAttributeChange", value); }
+        }
+
+        public bool FailOnLookupFailure
+        {
+            get { return (bool)Meta.CustomPropertyCollection["FailOnLookupFailure"].Value; }
+            set { Comp.SetComponentProperty("FailOnLookupFailure", value); }
+        }
+
+        public SCDRowChangeType IncomingRowChangeType
+        {
+            get { return (SCDRowChangeType)Meta.CustomPropertyCollection["SqlCommand"].Value; }
+            set { Comp.SetComponentProperty("SqlCommand", value.GetHashCode()); }
+        }
+        
+        public string SqlCommand
+        {
+            get { return (string)Meta.CustomPropertyCollection["SqlCommand"].Value; }
+            set { Comp.SetComponentProperty("SqlCommand", value); }
+        }
+
+        public bool UpdateChangingAttributeHistory
+        {
+            get { return (bool)Meta.CustomPropertyCollection["UpdateChangingAttributeHistory"].Value; }
+            set { Comp.SetComponentProperty("UpdateChangingAttributeHistory", value); }
+        }
+
+        private ColumnCustomPropertyIndexer<SCDColumnChangeType> m_changeType;
+        public ColumnCustomPropertyIndexer<SCDColumnChangeType> ChangeType
+        {
+            get
+            {
+                if (m_changeType == null)
+                    m_changeType = new ColumnCustomPropertyIndexer<SCDColumnChangeType>(this, "ColumnType", IndexerType.Input);
+                return m_changeType;
+            }
+        }
+    }
+
+    [CompID("{E4B61516-847B-4BDF-9CC6-1968A2D43E73}")]
+    public class EzSqlDestination: EzAdapter
+    {
+        public EzSqlDestination(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzSqlDestination(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        public bool AlwaysUseDefaultCodePage
+        {
+            get { return (bool)Meta.CustomPropertyCollection["AlwaysUseDefaultCodePage"].Value; }
+            set { Comp.SetComponentProperty("AlwaysUseDefaultCodePage", value); }
+        }
+
+        public bool CheckConstraints
+        {
+            get { return (bool)Meta.CustomPropertyCollection["BulkInsertCheckConstraints"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertCheckConstraints", value); }
+        }
+
+        public bool FireTriggers
+        {
+            get { return (bool)Meta.CustomPropertyCollection["BulkInsertFireTriggers"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertFireTriggers", value); }
+        }
+
+        public int FirstRow
+        {
+            get { return (int)Meta.CustomPropertyCollection["BulkInsertFirstRow"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertFirstRow", value); }
+        }
+
+        public int LastRow
+        {
+            get { return (int)Meta.CustomPropertyCollection["BulkInsertLastRow"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertLastRow", value); }
+        }
+
+        public bool KeepIdentity
+        {
+            get { return (bool)Meta.CustomPropertyCollection["BulkInsertKeepIdentity"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertKeepIdentity", value); }
+        }
+
+        public bool KeepNulls
+        {
+            get { return (bool)Meta.CustomPropertyCollection["BulkInsertKeepNulls"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertKeepNulls", value); }
+        }
+
+        public int MaxErrors
+        {
+            get { return (int)Meta.CustomPropertyCollection["BulkInsertMaxErrors"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertMaxErrors", value); }
+        }
+
+        public string OrderColumns
+        {
+            get { return (string)Meta.CustomPropertyCollection["BulkInsertOrder"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertOrder", value); }
+        }
+
+        public string Table
+        {
+            get { return (string)Meta.CustomPropertyCollection["BulkInsertTableName"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertTableName", value); }
+        }
+
+        public bool TabLock
+        {
+            get { return (bool)Meta.CustomPropertyCollection["BulkInsertTabLock"].Value; }
+            set { Comp.SetComponentProperty("BulkInsertTabLock", value); }
+        }
+
+        public int MaxInsertCommitSize
+        {
+            get { return (int)Meta.CustomPropertyCollection["MaxInsertCommitSize"].Value; }
+            set { Comp.SetComponentProperty("MaxInsertCommitSize", value); }
+        }
+
+        public int Timeout
+        {
+            get { return (int)Meta.CustomPropertyCollection["Timeout"].Value; }
+            set { Comp.SetComponentProperty("Timeout", value); }
         }
     }
 }
