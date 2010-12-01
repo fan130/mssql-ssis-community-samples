@@ -217,16 +217,6 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzDb2OleDbCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzDb2OleDbCM(EzPackage parent, string name) : base(parent, name) { }
 
-        public void SetConnectionString()
-        {
-            SetConnectionString("CONDOR", "DTSTeam");
-        }
-
-        public void SetConnectionString(string server, string db)
-        {
-            SetConnectionString(server, db, "DTSTEAM", "DTSTEAM");
-        }
-
         public void SetConnectionString(string server, string db, string user, string pwd)
         {
             SetConnectionString(server, db, user, pwd, server, user, user, user);

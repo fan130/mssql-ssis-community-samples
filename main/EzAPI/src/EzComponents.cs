@@ -15,7 +15,6 @@ using Microsoft.SqlServer.Dts.Runtime;
 using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline;
-using Microsoft.SqlServer.VSTAHosting;
 using Microsoft.DataTransformationServices.Controls;
 
 namespace Microsoft.SqlServer.SSIS.EzAPI
@@ -846,12 +845,6 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             m_comp.MapInputColumn(m_meta.InputCollection[0].ID, InputCol(inputColName).ID, ExternalCol(externalColName).ID);
         }
 
-        /*
-         * A patch suggested that the implementation of this method is incorrect.
-         * The implementation was changed, but the edit was reverted after the build broke a test.
-         * 
-         * Should further look into the correct implementation of this method.
-         */
         public void UpmapColumn(string inputColName)
         {
             InputCol(inputColName).MappedColumnID = -1;
@@ -1004,15 +997,6 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public override void ReinitializeMetaDataNoCast()
         {
             base.ReinitializeMetaDataNoCast();
-            // Commenting out this code as it is breaking OLEDB Src/Dest.  Talking with Evgeny, he mentioned this 
-            // was required for some OLE DB Component and so I will comment it out now, that way if we need it later, 
-            // we can uncomment and test with any failing scenarios.
-
-            //AcquireConnections();
-            //m_comp.ReinitializeMetaData();
-            //ReleaseConnections();
-
-
         }
 
         public string SqlCommand 
@@ -2110,165 +2094,6 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 AggrFunc[j, "*", countAllColumn[j], false] = Microsoft.SqlServer.SSIS.EzAPI.AggrFunc.CountAll;
             }
         }
-    }
-
-
-    [CompID("{73B2FF41-8181-4B0F-A2AA-A9E553BD18D5}")]
-    public class EzRandomSrc : EzComponent
-    {
-       public EzRandomSrc(EzDataFlow dataFlow) : base(dataFlow)	{ }        
-       public EzRandomSrc(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }  
-     
-        public uint Seed 
-        {
-            get { return (uint) m_meta.CustomPropertyCollection["Seed"].Value; }
-            set { m_comp.SetComponentProperty("Seed", value); ReinitializeMetaData(); }
-        }
-        
-        public uint RowCount
-        {
-            get { return (uint) m_meta.CustomPropertyCollection["Row Count"].Value; }
-            set { m_comp.SetComponentProperty("Row Count", value); ReinitializeMetaData(); }
-        }
-    }
-
-    [CompID("{8E35AE9F-DD0E-46FD-8C93-747803EB9010}")]
-    public class EzCheckSumDest : EzComponent
-    {
-        public EzCheckSumDest(EzDataFlow dataFlow) : base(dataFlow) { }
-        public EzCheckSumDest(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
-
-        public override void ReinitializeMetaDataNoCast()
-        {
-            base.ReinitializeMetaDataNoCast();
-            LinkAllInputsToOutputs();
-        }
-
-        public string CheckSumVar
-        {
-            get { return (string)Meta.CustomPropertyCollection["Checksum Variable Name"].Value; }
-            set { SetComponentProperty("Checksum Variable Name", value); }
-        }
-
-        public int HashChunkSize
-        {
-            get { return (int)Meta.CustomPropertyCollection["Hash Chunk Size"].Value; }
-            set { SetComponentProperty("Hash Chunk Size", value); }
-        }
-
-        public bool RowsOrdered
-        {
-            get { return (bool)Meta.CustomPropertyCollection["Rows Are Ordered"].Value; }
-            set { SetComponentProperty("Rows Are Ordered", value); }
-        }
-    }
-
-    [CompID("Microsoft.SqlServer.Dts.Pipeline.ScriptComponentHost, Microsoft.SqlServer.TxScript, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
-    public class EzScript : EzComponent
-    {
-        public const string VisualBasic = "VisualBasic";
-        public const string CSharp = "CSharp";
-
-        public class BinaryCodeIndexer
-        {
-            EzScript obj;
-            internal BinaryCodeIndexer(EzScript parent) { obj = parent; }
-            byte[] this[string asmName]
-            {
-                get { return obj.host.GetBinaryCode(asmName); }
-                set { obj.host.PutBinaryCode(asmName, value); }
-            }
-        }
-       
-        public EzScript(EzDataFlow dataFlow) : base(dataFlow) { }
-        public EzScript(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
-
-        private ScriptComponentHost host { get { return (Comp as IDTSManagedComponent100).InnerObject as ScriptComponentHost; } }
-      
-        // VSTA scripting feature is undocumented, so the corresponding EzAPI functionality is marked obsolete.
-        [System.Obsolete("VSTA scripting is undocumented.")]
-        public VSTAComponentScriptingEngine ScriptingEngine
-        {
-            get
-            {
-                return typeof(ScriptComponentHost).InvokeMember("CurrentScriptingEngine", BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Instance,
-                    null, host, null) as VSTAComponentScriptingEngine;
-            }
-        }
-        
-
-        public string ReadOnlyVars
-        {
-            get { return (string)Meta.CustomPropertyCollection["ReadOnlyVariables"].Value; }
-            set { SetComponentProperty("ReadOnlyVariables", value); }
-        }
-
-        public string ReadWriteVars
-        {
-            get { return (string)Meta.CustomPropertyCollection["ReadWriteVariables"].Value; }
-            set { SetComponentProperty("ReadWriteVariables", value); }
-        }
-
-        public string ScriptLanguage
-        {
-            get { return (string)Meta.CustomPropertyCollection["ScriptLanguage"].Value; }
-            set { SetComponentProperty("ScriptLanguage", value); }
-        }
-        
-        public string ProjectName
-        {
-            get { return (string)Meta.CustomPropertyCollection["VSTAProjectName"].Value; }
-            set { SetComponentProperty("VSTAProjectName", value); }
-        }
-
-        // 0 - filename, 1 - code, 2 - filename, 3 - code, etc.
-        public string[] SourceCode
-        {
-            get { return (string[])Meta.CustomPropertyCollection["SourceCode"].Value; }
-            set { SetComponentProperty("SourceCode", value); }
-        }
-
-        public void PutSourceFile(string fileName, string srcCode)
-        {
-            host.PutSourceCode(fileName, srcCode);
-        }
-
-        private BinaryCodeIndexer m_binaryCode;
-        public BinaryCodeIndexer BinaryCode
-        {
-            get
-            {
-                if (m_binaryCode == null)
-                    m_binaryCode = new BinaryCodeIndexer(this);
-                return m_binaryCode;
-            }
-        }
-
-        public void InitNewScript()
-        {
-            host.ShowIDE();
-            host.CloseIDE();
-        }
-
-        // Marking as obsolete methods that are dependent upon VSTA scripting functionality.
-        [System.Obsolete("VSTA scripting is undocumented.")]
-        public bool AddCodeFile(string fileName, string srcCode)
-        {
-            ScriptingEngine.LoadScriptFromStorage();
-            if (!ScriptingEngine.AddCodeFile(fileName, srcCode))
-                return false;
-            return ScriptingEngine.SaveScriptToStorage();
-        }
-
-        [System.Obsolete("VSTA scripting is undocumented.")] 
-        public bool Build()
-        {
-            ScriptingEngine.LoadScriptFromStorage();
-            if (!ScriptingEngine.Build())
-                return false;
-            return ScriptingEngine.SaveScriptToStorage();
-        }
-        
     }
 
     public enum XMLAccessMode
