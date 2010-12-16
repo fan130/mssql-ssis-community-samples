@@ -206,7 +206,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public void SetConnectionString(string server, string db)
         {
-            ConnectionString = string.Format("provider=sqlncli11;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
+            ConnectionString = string.Format("provider=sqlncli10;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
                 db, server);
         }
     }

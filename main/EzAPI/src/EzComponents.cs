@@ -1034,14 +1034,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{165A526D-D5DE-47FF-96A6-F8274C19826B}")]
+    [CompID("{BCEFE59B-6819-47F7-A125-63753B33ABB7}")]
     public class EzOleDbSource : EzOleDbAdapter
     {
         public EzOleDbSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
         public EzOleDbSource(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
     }
 
-    [CompID("{4ADA7EAA-136C-4215-8098-D7A7C27FC0D1}")]
+    [CompID("{5A0B62E8-D91D-49F5-94A5-7BE58DE508F0}")]
     public class EzOleDbDestination : EzOleDbAdapter
     {
         public EzOleDbDestination(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1073,7 +1073,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{D23FD76B-F51D-420F-BBCB-19CBF6AC1AB4}")]
+    [CompID("{5ACD952A-F16A-41D8-A681-713640837664}")]
     public class EzFlatFileSource : EzAdapter
     {
         public EzFlatFileSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1097,7 +1097,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{8DA75FED-1B7C-407D-B2AD-2B24209CCCA4}")]
+    [CompID("{D658C424-8CF0-441C-B3C4-955E183B7FBA}")]
     public class EzFlatFileDestination : EzAdapter
     {
         public EzFlatFileDestination(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1288,7 +1288,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{EC139FBC-694E-490B-8EA7-35690FB0F445}")]
+    [CompID("{1ACA4459-ACE0-496F-814A-8611F9C27E23}")]
     public class EzMultiCast : EzComponent
     {
         public static string CompID { get { return "{EC139FBC-694E-490B-8EA7-35690FB0F445}"; } }
@@ -1296,7 +1296,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzMultiCast(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }  
     }
 
-    [CompID("{49928E82-9C4E-49F0-AABE-3812B82707EC}")]
+    [CompID("{2932025B-AB99-40F6-B5B8-783A73F80E24}")]
     public class EzDerivedColumn : EzComponent
     {
         public EzDerivedColumn(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1349,7 +1349,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{5B1A3FF5-D366-4D75-AD1F-F19A36FCBEDB}")]
+    [CompID("{07127A7C-164B-422A-AD1F-24BE39B4DB38}")]
     public class EzSortTransform : EzComponent
     {
         public EzSortTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1442,7 +1442,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{93FFEC66-CBC8-4C7F-9C6A-CB1C17A7567D}")]
+    [CompID("{8E61C8F6-C91D-43B6-97EB-3423C06571CC}")]
     public class EzOleDbCommand : EzAdapter
     {
         public EzOleDbCommand(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1518,7 +1518,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public IEnumerator GetEnumerator() { return MapIDs.GetEnumerator(); }
     }
 
-    [CompID("{671046B0-AA63-4C9F-90E4-C06E0B710CE3}")]
+    [CompID("{27648839-180F-45E6-838D-AFF53DF682D2}")]
     public class EzLookup : EzComponent
     {
         public EzLookup(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1768,7 +1768,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{BF818E79-2C1C-410D-ADEA-B2D1A04FED01}")]
+    [CompID("{A236DD44-4409-433E-A1CE-283DA18F4E0F}")]
     public class EzCacheTransform : EzComponent
     {
         public EzCacheTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1834,7 +1834,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{62B1106C-7DB8-4EC8-ADD6-4C664DFFC54A}")]
+    [CompID("{BD06A22E-BC69-4AF7-A69B-C44C2EF684BB}")]
     public class EzDataConvert : EzComponent
     {
         public EzDataConvert(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1984,7 +1984,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{5B201335-B360-485C-BB93-75C34E09B3D3}")]
+    [CompID("{9ABE8DF3-0052-42DB-8B18-2089E1D1D1B7}")]
     public class EzAggregate : EzComponent
     {
         public EzAggregate(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2160,7 +2160,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{C9269E28-EBDE-4DED-91EB-0BF42842F9F4}")]
+    [CompID("{61CF9F97-4816-44CF-8CF5-1FE6DC0A30AD}")]
     public class EzExcelDest : EzAdapter
     {
         public EzExcelDest(EzDataFlow dataFlow) : base(dataFlow) { }
