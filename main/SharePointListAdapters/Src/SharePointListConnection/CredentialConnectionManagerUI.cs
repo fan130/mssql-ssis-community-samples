@@ -86,7 +86,6 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager
             // If the user is pasting a new connection manager into this window, we can just return true.
             // We don't need to bring up the edit dialog ourselves
             IDtsClipboardService clipboardService = _serviceProvider.GetService(typeof(IDtsClipboardService)) as IDtsClipboardService;
-            Debug.Assert(clipboardService != null);
 
             if ((clipboardService != null) && (clipboardService.IsPasteActive))
             {
