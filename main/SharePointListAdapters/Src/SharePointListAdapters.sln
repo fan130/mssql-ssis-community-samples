@@ -7,9 +7,11 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SharePointUtility", "ShareP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListConnection", "SharePointListConnection\SharePointListConnection.csproj", "{2EF043E5-D843-4085-9801-5269AED387C8}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Test.SharepointUtility", "Test.SharepointUtility\Test.SharepointUtility.vbproj", "{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs02
 		SccLocalPath0 = .
@@ -22,6 +24,9 @@ Global
 		SccProjectUniqueName3 = SharePointListConnection\\SharePointListConnection.csproj
 		SccProjectName3 = SharePointListConnection
 		SccLocalPath3 = SharePointListConnection
+		SccProjectUniqueName4 = Test.SharepointUtility\\Test.SharepointUtility.vbproj
+		SccProjectName4 = Test.SharepointUtility
+		SccLocalPath4 = Test.SharepointUtility
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +53,14 @@ Global
 		{2EF043E5-D843-4085-9801-5269AED387C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EF043E5-D843-4085-9801-5269AED387C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2EF043E5-D843-4085-9801-5269AED387C8}.Release|x86.ActiveCfg = Release|Any CPU
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Debug|x86.ActiveCfg = Debug|x86
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Debug|x86.Build.0 = Debug|x86
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Release|x86.ActiveCfg = Release|x86
+		{D6EE613E-5BCF-482F-9DBD-37880EB4A3B6}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
