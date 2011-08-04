@@ -9,7 +9,7 @@
 			 Language="1033" Version="1.0.0.0" 
 			 Manufacturer="Microsoft" 
 			 UpgradeCode="{9FEFBC81-365E-44FE-9FE6-DF9BA7BBBEC3}">
-		<Package InstallerVersion="200" Compressed="yes" Platform="x64"
+		<Package InstallerVersion="405" Compressed="yes" Platform="x64"
 				 InstallScope="perMachine" InstallPrivileges="elevated"  
 				 Comments="Sample SharePoint list adapters for SQL Server for SQL Server Integration Services"
 				 Keywords="SharePoint Adapter SSIS SQL Server for SQL Server Integration Services"
@@ -21,14 +21,13 @@
 			<![CDATA[Installed OR NETFRAMEWORK35]]>
 		</Condition>
 
-		<Property Id="TEST" Value="1" />
-
+		<!-- Look for the SSIS Installation Folders for each edition and for each bitness we need -->		
 		<Property Id="INSTALLDIR32_2005">
-			<RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no"
+			<RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" Name="SqlPath"
 							Key="Software\Microsoft\Microsoft SQL Server\90\DTS\Setup" />
 		</Property>
 		<Property Id="INSTALLDIR64_2005">
-			<RegistrySearch Id="FindDTSPath64_2005" Root="HKLM" Type="directory" Win64="yes"
+			<RegistrySearch Id="FindDTSPath64_2005" Root="HKLM" Type="directory" Win64="yes" Name="SqlPath"
 							Key="Software\Microsoft\Microsoft SQL Server\90\DTS\Setup" />
 		</Property>
 
@@ -53,6 +52,7 @@
 		<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
+			<!-- Components to install: Gacced components, and version specific files -->
 			<Directory Id="Folder2005" Name="PFiles2005">
 				<Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
 					<File Id="SharePointUtilityDLLGACFile"
@@ -65,14 +65,14 @@
 						<Component Id="ComponentConnectionManager32_2005" KeyPath="yes" Guid="{5F9BBD8F-6E5B-411E-A7B9-3DF2E534E038}">
 							<File Id="ConnectionManagerDLL32_2005"
 									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
+  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
 						</Component>
 					</Directory>
 					<Directory Id="DataAdapters32_2005" Name="PipelineComponents">
 						<Component Id="PipelineComponents32_2005" KeyPath="yes" Guid="{A46DC92A-D3CC-405F-81B8-A4F8BD2C1A14}">
 							<File Id="PipelineComponentDLL32_2005"
 									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
+  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
 						</Component>
 					</Directory>
 				</Directory>
@@ -81,26 +81,26 @@
 						<Component Id="ComponentConnectionManager64_2005" KeyPath="yes" Guid="{2CC1CA11-83F3-4414-95CA-87BEE99239DB}">
 							<File Id="ConnectionManagerDLL64_2005"
 									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
+  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
 						</Component>
 					</Directory>
 					<Directory Id="DataAdapters64_2005" Name="PipelineComponents">
 						<Component Id="PipelineComponents64_2005" KeyPath="yes" Guid="{AD852EE6-5FDF-4FAC-BABA-C6DE7DABB708}">
 							<File Id="PipelineComponentDLL64_2005"
 									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
+  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
 						</Component>
 					</Directory>
 				</Directory>
 				<Component Id="ConnectionManagerDLLGAC_2005"  Guid="{92790422-7A60-45A8-A02A-C48984DDD1BD}">
 					<File Id="ConnectionManagerDLLGACFile_2005"
 							Name="SharePointListConnectionManager.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
 				</Component>
 				<Component Id="PipelineComponentDLLGAC_2005"  Guid="{7D26E3F0-274E-41C1-991C-79BBF68A621F}">
 					<File Id="PipelineComponentDLLGACFile_2005"
 							Name="SharePointListAdapters.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
 				</Component>
 			</Directory>
 			<Directory Id="Folder2008" Name="PFiles2008">
@@ -192,12 +192,18 @@
 							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
 				</Component>
 			</Directory>
+			<Component Id="RestartSSISService" Guid="{36568AC6-C8AE-4CAD-836F-AE9C7722C07A}">
+				<ServiceControl Id="SSISServiceStop" Name="MsDtsServer" Stop="both" />
+			</Component>
 		</Directory>
-		
+
+		<!-- Features for the feature picker -->
 		<Feature Id="SharePointAdapters" Title="SharePoint SSIS SQL Server Adapters" Level="1" Display="expand" 
 				 TypicalDefault="install">
+			<ComponentRef Id="RestartSSISService" />
 			<ComponentRef Id="SharePointUtilityDLLGAC" />
 			<Feature Id="Sql2005" Title="SSIS 2005 Components" Level="1" Display="expand">
+				<!-- Hide SQL 2005 if paths are not found -->
 				<Condition Level="0"><![CDATA[INSTALLDIR32_2005 = "" AND INSTALLDIR64_2005  = ""]]></Condition>
 				<ComponentRef Id="ConnectionManagerDLLGAC_2005" />
 				<ComponentRef Id="PipelineComponentDLLGAC_2005" />
@@ -209,7 +215,8 @@
 				</Feature>
 				<Feature Id="Sql2005x64" Title="x64 Components (for runtime)" Level="1" 
 					 ConfigurableDirectory="INSTALLDIR64_2005">
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2005 = ""]]></Condition>
+					<!-- Hide 64 bit option if not 64 bit -->
+					<Condition Level="0"><![CDATA[INSTALLDIR64_2005 = "" OR INSTALLDIR64_2005 = INSTALLDIR32_2005]]></Condition>
 					<ComponentRef Id="ComponentConnectionManager64_2005" />
 					<ComponentRef Id="PipelineComponents64_2005" />
 				</Feature>
@@ -221,13 +228,15 @@
 				<ComponentRef Id="PipelineComponentDLLGAC_2008" />
 				<Feature Id="Sql2008x86" Title="x86 Components (for designer and runtime)" Level="1" 
 					 ConfigurableDirectory="INSTALLDIR32_2008">
+					<!-- Hide SQL 2008 if paths are not found -->
 					<Condition Level="0"><![CDATA[INSTALLDIR32_2008 = ""]]></Condition>
 					<ComponentRef Id="ComponentConnectionManager32_2008" />
 					<ComponentRef Id="PipelineComponents32_2008" />
 				</Feature>
 				<Feature Id="Sql2008x64" Title="x64 Components (for runtime)" Level="1"  
 					 ConfigurableDirectory="INSTALLDIR64_2008">
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2008 = ""]]></Condition>
+					<!-- Hide 64 bit option if not 64 bit -->
+					<Condition Level="0"><![CDATA[INSTALLDIR64_2008 = "" OR INSTALLDIR64_2008 = INSTALLDIR32_2008]]></Condition>
 					<ComponentRef Id="ComponentConnectionManager64_2008" />
 					<ComponentRef Id="PipelineComponents64_2008" />
 				</Feature>
@@ -239,19 +248,22 @@
 				<ComponentRef Id="PipelineComponentDLLGAC_2012" />
 				<Feature Id="Sql2012x86" Title="x86 Components (for designer and runtime)" Level="1"
 					 ConfigurableDirectory="INSTALLDIR32_2012">
+					<!-- Hide SQL 2012 if paths are not found -->
 					<Condition Level="0"><![CDATA[INSTALLDIR32_2012 = ""]]></Condition>
 					<ComponentRef Id="ComponentConnectionManager32_2012" />
 					<ComponentRef Id="PipelineComponents32_2012" />
 				</Feature>
 				<Feature Id="Sql2012x64" Title="x64 Components (for runtime)" Level="1"
 					 ConfigurableDirectory="INSTALLDIR64_2012">
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2012 = ""]]></Condition>
+					<!-- Hide 64 bit option if not 64 bit -->
+					<Condition Level="0"><![CDATA[INSTALLDIR64_2012 = "" OR INSTALLDIR64_2012 = INSTALLDIR32_2012]]></Condition>
 					<ComponentRef Id="ComponentConnectionManager64_2012" />
 					<ComponentRef Id="PipelineComponents64_2012" />
 				</Feature>
 			</Feature>
 		</Feature>
 
+		<!-- Reference to the Internal WiX UI Template set which includes the Feature Picker -->
 		<UIRef Id="WixUI_Mondo" />
 
 	</Product>

@@ -7,7 +7,9 @@ del *.pdb /s
 del *.dll /s
 del *.msi /s
 
+
 cd sql2005
+copy ..\FindReplaceText.exe /Y
 FindReplaceText "IDTSInputColumnCollection100" "IDTSInputColumnCollection90"
 FindReplaceText "IDTSExternalMetadataColumn100" "IDTSExternalMetadataColumn90" 
 FindReplaceText "IDTSInput100" "IDTSInput90" 
@@ -22,6 +24,7 @@ FindReplaceText "1.0.0.0" "1.2005.0.0"
 cd..
 
 cd sql2008
+copy ..\FindReplaceText.exe /Y
 FindReplaceText "IDTSInputColumnCollection90" "IDTSInputColumnCollection100"
 FindReplaceText "IDTSExternalMetadataColumn90" "IDTSExternalMetadataColumn100" 
 FindReplaceText "IDTSInput90" "IDTSInput100" 
@@ -34,6 +37,7 @@ FindReplaceText "IDTSRuntimeConnection90" "IDTSRuntimeConnection100"
 cd ..
 
 cd sql2012
+copy ..\FindReplaceText.exe /Y
 FindReplaceText "IDTSInputColumnCollection90" "IDTSInputColumnCollection100"
 FindReplaceText "IDTSExternalMetadataColumn90" "IDTSExternalMetadataColumn100" 
 FindReplaceText "IDTSInput90" "IDTSInput100" 
@@ -52,4 +56,8 @@ gacutil /uf sharepointlistconnectionmanager
 gacutil /uf sharepointutility
 
 ECHO Build the MSIs for Deployment...
-%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release
+FindReplaceText " Platform=""x64""" " Platform=""x86"""
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x86
+
+FindReplaceText " Platform=""x86""" " Platform=""x64"""
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x64

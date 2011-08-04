@@ -15,7 +15,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager
     [DtsConnection(
         ConnectionType = "SPCRED",
         DisplayName = "SharePoint Credential",
-        Description = "Connection manager holding Credentials for use in SharePoint",
+        Description = "Connection manager for SharePoint connections",
         UITypeName = "Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager.CredentialConnectionManagerUI, SharePointListConnectionManager, Version=1.0.0.0, Culture=neutral,PublicKeyToken=f4b3011e1ece9d47"
     )]
     public sealed class CredentialConnectionManager : ConnectionManagerBase, IDTSComponentPersist
