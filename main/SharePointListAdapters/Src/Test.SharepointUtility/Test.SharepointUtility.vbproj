@@ -107,7 +107,6 @@
     <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="ListsServiceUtilityTest.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="ViewsAdapterTest.vb" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharePointUtility\SharePointUtility.vbproj">
