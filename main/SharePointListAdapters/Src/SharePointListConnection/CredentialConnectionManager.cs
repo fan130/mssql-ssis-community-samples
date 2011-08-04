@@ -118,7 +118,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager
         #region IDTSComponentPersist Members
 
         #region String Constants
-        private const string PERSIST_XML_ELEMENT = "SSDSConnectionManager";
+        private const string PERSIST_XML_ELEMENT = "SPConnectionManager";
         private const string PERSIST_XML_PASSWORD = "PassWord";
         private const string PERSIST_XML_SENSITIVE = "Sensitive";
         #endregion
