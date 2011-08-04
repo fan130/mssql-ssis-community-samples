@@ -70,6 +70,7 @@ Global
 		SccProjectName8 = SQL2012/SharePointListConnection
 		SccLocalPath8 = SQL2012\\SharePointListConnection
 		SccProjectUniqueName9 = SSISAdapterInstaller\\SSISAdapterInstaller.wixproj
+		SccProjectTopLevelParentUniqueName9 = DeploySSISAdapters.sln
 		SccProjectName9 = SSISAdapterInstaller
 		SccLocalPath9 = SSISAdapterInstaller
 	EndGlobalSection
@@ -168,6 +169,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{CBA05AB3-6FEE-4117-94F9-F4ED59A60567} = {D3EB6E20-7D20-47DD-AE8E-4E451F46A03A}
 		{3C83B6BA-5175-4CFC-9A37-65474741DBC9} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
 		{56CE54A6-C1E3-4135-AB67-4EC78346E815} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
 		{B0F3C370-D60F-4C47-9501-25E55A517B14} = {BE4829AF-08F2-46F4-8904-E03FB98ADE65}
