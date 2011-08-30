@@ -646,6 +646,12 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                                 else
                                     rowData.Add(fieldName, buffer.GetSingle(_bufferLookup[fieldName]).ToString(_culture));
                                 break;
+                            case DataType.DT_CY:
+                                if (buffer.IsNull(_bufferLookup[fieldName]))
+                                    rowData.Add(fieldName, string.Empty);
+                                else
+                                    rowData.Add(fieldName, buffer.GetDecimal(_bufferLookup[fieldName]).ToString(_culture));
+                                break;
                             case DataType.DT_R8:
                                 if (buffer.IsNull(_bufferLookup[fieldName]))
                                     rowData.Add(fieldName, string.Empty);

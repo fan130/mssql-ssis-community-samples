@@ -487,6 +487,39 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         }
 
         /// <summary>
+        /// Allow the user to change a String to a NText, although this may affect performance.
+        /// </summary>
+        /// <param name="outputID"></param>
+        /// <param name="outputColumnID"></param>
+        /// <param name="dataType"></param>
+        /// <param name="length"></param>
+        /// <param name="precision"></param>
+        /// <param name="scale"></param>
+        /// <param name="codePage"></param>
+        public override void SetOutputColumnDataTypeProperties(int outputID, int outputColumnID, Microsoft.SqlServer.Dts.Runtime.Wrapper.DataType dataType, int length, int precision, int scale, int codePage)
+        {
+            var outputColl = this.ComponentMetaData.OutputCollection;
+            IDTSOutput output = outputColl.GetObjectByID(outputID);
+
+            var columnColl = output.OutputColumnCollection;
+            IDTSOutputColumn column = columnColl.GetObjectByID(outputColumnID);
+
+            var sourceColl = output.ExternalMetadataColumnCollection;
+            IDTSExternalMetadataColumn columnSource = sourceColl.GetObjectByID(column.ExternalMetadataColumnID);
+
+            if (((column.DataType == DataType.DT_WSTR) || (column.DataType == DataType.DT_NTEXT))
+                && ((dataType == DataType.DT_NTEXT) || (dataType == DataType.DT_WSTR)))
+            {
+                column.SetDataTypeProperties(dataType, length, precision, scale, codePage);
+            }
+            else
+            {
+                base.SetOutputColumnDataTypeProperties(outputID, outputColumnID, dataType, length, precision, scale, codePage);
+            }
+        }
+
+
+        /// <summary>
         /// Enables updating of an existing version of a component to a newer version
         /// </summary>
         /// <param name="pipelineVersion">Seems to always be 0</param>
