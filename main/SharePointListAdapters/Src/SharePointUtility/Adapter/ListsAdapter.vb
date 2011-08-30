@@ -84,7 +84,10 @@ Namespace Adapter
             binding.ReaderQuotas.MaxNameTableCharCount = Int32.MaxValue
             binding.ReaderQuotas.MaxStringContentLength = Int32.MaxValue
 
+            binding.OpenTimeout = New TimeSpan(24, 0, 0)
+            binding.CloseTimeout = New TimeSpan(24, 0, 0)
             binding.ReceiveTimeout = New TimeSpan(24, 0, 0)
+            binding.SendTimeout = New TimeSpan(24, 0, 0)
 
             ' Create the client with the given settings
             Dim ep = New EndpointAddress(_sharepointUri)

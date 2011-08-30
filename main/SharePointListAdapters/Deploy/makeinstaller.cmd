@@ -1,4 +1,8 @@
-attrib -r *.cs /s
+REM Any existing installation of the adapters MUST be uninstalled before this executes
+REM or else the installed GAC components will throw off the build.
+msiexec /x {53623FF2-309D-44FA-86B7-19728C3D8CE3}
+
+attrib -r /s
 xcopy ..\Src\*.cs sql2005 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs sql2008 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2012 /s /y /EXCLUDE:excludefilelist.txt
