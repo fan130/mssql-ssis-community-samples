@@ -23,8 +23,8 @@
 
 		<!-- Look for the SSIS Installation Folders for each edition and for each bitness we need -->		
 		<Property Id="INSTALLDIR32_2005">
-			<RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" Name="SqlPath"
-							Key="Software\Microsoft\Microsoft SQL Server\90\DTS\Setup" />
+			<RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" 
+							Key="Software\Microsoft\MSDTS\Setup\DTSPath" />
 		</Property>
 		<Property Id="INSTALLDIR64_2005">
 			<RegistrySearch Id="FindDTSPath64_2005" Root="HKLM" Type="directory" Win64="yes" Name="SqlPath"
