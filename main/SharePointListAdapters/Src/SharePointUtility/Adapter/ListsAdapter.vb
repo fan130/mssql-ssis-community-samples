@@ -348,16 +348,18 @@ Namespace Adapter
         Public Function LookupViewName(ByVal listName As String, ByVal viewName As String) As String
 
             If ((viewName IsNot Nothing) AndAlso (viewName.Length > 0)) Then
-                Dim viewAdapter As ViewsAdapter = New ViewsAdapter(_sharepointBaseUri, _credential)
-                Dim viewData = viewAdapter.GetViewList(listName.Trim())
-                Dim viewId = From x In viewData Where x.DisplayName.ToUpper() = viewName.ToUpper() Select x.Name
+                Using viewAdapter = New ViewsAdapter(_sharepointBaseUri, _credential)
 
-                If (viewId.Count() = 1) Then
-                    Return viewId(0)
-                Else
-                    Throw New SharePointUtility.SharePointUnhandledException( _
-                        String.Format("List '{0}' does not contain a view named '{1}'", listName, viewName))
-                End If
+                    Dim viewData = viewAdapter.GetViewList(listName.Trim())
+                    Dim viewId = From x In viewData Where x.DisplayName.ToUpper() = viewName.ToUpper() Select x.Name
+
+                    If (viewId.Count() = 1) Then
+                        Return viewId(0)
+                    Else
+                        Throw New SharePointUtility.SharePointUnhandledException( _
+                            String.Format("List '{0}' does not contain a view named '{1}'", listName, viewName))
+                    End If
+                End Using
             Else
                 Return Nothing
             End If
