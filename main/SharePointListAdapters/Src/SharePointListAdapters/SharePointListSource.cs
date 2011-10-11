@@ -21,7 +21,7 @@ using IDTSRuntimeConnection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSRunti
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Source",
-		CurrentVersion = 6,
+		CurrentVersion = 7,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointSource.ico",
 		Description = "Extract data from SharePoint lists",
 		ComponentType = ComponentType.SourceAdapter)]
@@ -37,6 +37,8 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const string C_BATCHSIZE = "BatchSize";
         private const string C_ISRECURSIVE = "IsRecursive";
         private const string C_INCLUDEFOLDERS = "IncludeFolders";
+        private const string C_INCLUDEHIDDEN = "IncludeHiddenColumns";
+        private const string C_CONNECTIONMANAGER = "UseConnectionManager";
         private Dictionary<string, int> _bufferLookup;
         private Dictionary<string, DataType> _bufferLookupDataType;
         private CultureInfo _culture;
@@ -101,9 +103,22 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             includeFolders.Description = "Whether to return folders with the list content";
             includeFolders.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
 
-            // Add the connection manager.
+            var includeHidden = ComponentMetaData.CustomPropertyCollection.New();
+            includeHidden.Name = C_INCLUDEHIDDEN;
+            includeHidden.Value = Enums.TrueFalseValue.False;
+            includeHidden.Description = "Whether to return colunmns SharePoint considers hidden";
+            includeHidden.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+
+            var useConnectionManager = ComponentMetaData.CustomPropertyCollection.New();
+            useConnectionManager.Name = C_CONNECTIONMANAGER;
+            useConnectionManager.Value = Enums.TrueFalseValue.True;
+            useConnectionManager.Description = "Whether to use a connection manager for this component";
+            useConnectionManager.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+            
+            // Add the connection manager (by default)
             var connection = ComponentMetaData.RuntimeConnectionCollection.New();
             connection.Name = "Sharepoint Credential Connection";
+            
 
         }
 
@@ -114,7 +129,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         /// <param name="transaction">Not used.</param>
         public override void AcquireConnections(object transaction)
         {
-            _credentials = null;
+            // Change default connection to use the system credential
+            _credentials = System.Net.CredentialCache.DefaultNetworkCredentials;
+
+            // If the user sets a connection, then use that instead.
             if (ComponentMetaData.RuntimeConnectionCollection.Count > 0)
             {
                 if (ComponentMetaData.RuntimeConnectionCollection[0].ConnectionManager != null)
@@ -136,6 +154,13 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         public override DTSValidationStatus Validate()
         {
             bool canCancel = false;
+
+            // On validation, cleanup any connection managers if the user has disabled them
+            if ((ComponentMetaData.CustomPropertyCollection[C_CONNECTIONMANAGER].Value == null) ||
+                (((Enums.TrueFalseValue)ComponentMetaData.CustomPropertyCollection[C_CONNECTIONMANAGER].Value) == Enums.TrueFalseValue.False))
+            {
+                ComponentMetaData.RuntimeConnectionCollection.RemoveAll();
+            }
 
             if ((ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value == null) ||
                 (((string)ComponentMetaData.CustomPropertyCollection[C_SHAREPOINTSITEURL].Value).Length == 0))
@@ -373,9 +398,15 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 where c.Name == "ID"
                 select c;
 
+            // Consult the property to determine if we're doing any filtering here
+            bool includeHidden = false;
+            var includeHiddenProperty = FindCustomProperty(C_INCLUDEHIDDEN);
+            if ((Enums.TrueFalseValue) includeHiddenProperty.Value == Enums.TrueFalseValue.True)
+                includeHidden = true;
+
             var accessibleColumns =
                 from c in columnList
-                where !c.IsHidden
+                where c.IsHidden == includeHidden
                 select c;
 
             return idField.Union(accessibleColumns).ToList();
@@ -411,14 +442,29 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 List<SharePointUtility.DataObject.ColumnData> accessibleColumns =
                     GetAccessibleSharePointColumns(sharepointUrl, listName, viewName);
 
+                // Group the friendly names which are duplicated
+                var dupeNames = from n in accessibleColumns
+                                group n by n.FriendlyName into g
+                                where g.Count() > 1
+                                select g.Key;
+
                 foreach (var column in accessibleColumns)
                 {
                     // Setup the primary column details from the List
                     IDTSExternalMetadataColumn dtsColumnMeta = output.ExternalMetadataColumnCollection.New();
                     if (existingColumnData.ContainsKey(column.Name))
+                    {
                         dtsColumnMeta.Name = existingColumnData[column.Name];
+                    }
+                    else if (dupeNames.Contains(column.FriendlyName))
+                    {
+                        // Add the more descriptive name after the duplicate names
+                        dtsColumnMeta.Name = column.FriendlyName + " (" + column.Name + ")";
+                    }
                     else
+                    {
                         dtsColumnMeta.Name = column.FriendlyName;
+                    }
                     dtsColumnMeta.Description = column.DisplayName;
                     dtsColumnMeta.Length = 0;
                     dtsColumnMeta.Precision = 0;
@@ -545,11 +591,39 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 sharepointCulture.ExpressionType = DTSCustomPropertyExpressionType.CPET_NOTIFY;
                 sharepointCulture.Value = "en-US";
             }
-            if (ComponentMetaData.RuntimeConnectionCollection.Count == 0)
+
+            var includeHidden = FindCustomProperty(C_INCLUDEHIDDEN);
+            if (includeHidden == null)
+            {
+                includeHidden = ComponentMetaData.CustomPropertyCollection.New();
+                includeHidden.Name = C_INCLUDEHIDDEN;
+                includeHidden.Value = Enums.TrueFalseValue.False;
+                includeHidden.Description = "Whether to return colunmns SharePoint considers hidden";
+                includeHidden.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+            }
+
+            var connectionManager = FindCustomProperty(C_CONNECTIONMANAGER);
+            if (connectionManager == null)
+            {
+                connectionManager = ComponentMetaData.CustomPropertyCollection.New();
+                connectionManager.Name = C_CONNECTIONMANAGER;
+                connectionManager.Value = Enums.TrueFalseValue.True;
+                connectionManager.Description = "Whether to use a connection manager for this component";
+                connectionManager.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+            }
+
+            if (((Enums.TrueFalseValue) connectionManager.Value == Enums.TrueFalseValue.True) && (ComponentMetaData.RuntimeConnectionCollection.Count == 0))
             {
                 var connection = ComponentMetaData.RuntimeConnectionCollection.New();
                 connection.Name = "Sharepoint Credential Connection";
             }
+
+            if (((Enums.TrueFalseValue)connectionManager.Value != Enums.TrueFalseValue.True) && (ComponentMetaData.RuntimeConnectionCollection.Count != 0))
+            {
+                ComponentMetaData.RuntimeConnectionCollection.RemoveAll();
+            }
+
+
         }
 
         /// <summary>
