@@ -671,84 +671,56 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                     var rowData = new Dictionary<string, string>();
                     foreach (var fieldName in _bufferLookup.Keys)
                     {
-                        switch (_bufferLookupDataType[fieldName])
+                        if (buffer.IsNull(_bufferLookup[fieldName]))
                         {
-                            case DataType.DT_STR:
-                            case DataType.DT_WSTR:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                            // Do nothing, can ignore this field
+                        }
+                        else
+                        {
+                            switch (_bufferLookupDataType[fieldName])
+                            {
+                                case DataType.DT_STR:
+                                case DataType.DT_WSTR:
                                     rowData.Add(fieldName, buffer.GetString(_bufferLookup[fieldName]));
-                                break;
-                            case DataType.DT_NTEXT:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
-                                {
+                                    break;
+                                case DataType.DT_NTEXT:
                                     int colDataLength = (int)buffer.GetBlobLength(_bufferLookup[fieldName]);
                                     byte[] stringData = buffer.GetBlobData(_bufferLookup[fieldName], 0, colDataLength);
                                     rowData.Add(fieldName, Encoding.Unicode.GetString(stringData));
-                                }
-                                break;
-                            case DataType.DT_R4:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_R4:
                                     rowData.Add(fieldName, buffer.GetSingle(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_CY:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_CY:
                                     rowData.Add(fieldName, buffer.GetDecimal(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_R8:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_R8:
                                     rowData.Add(fieldName, buffer.GetDouble(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_UI1:
-                            case DataType.DT_I1:
-                            case DataType.DT_BOOL:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_UI1:
+                                case DataType.DT_I1:
+                                case DataType.DT_BOOL:
                                     rowData.Add(fieldName, buffer.GetBoolean(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_UI2:
-                            case DataType.DT_I2:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_UI2:
+                                case DataType.DT_I2:
                                     rowData.Add(fieldName, buffer.GetInt16(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_UI4:
-                            case DataType.DT_I4:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_UI4:
+                                case DataType.DT_I4:
                                     rowData.Add(fieldName, buffer.GetInt32(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_UI8:
-                            case DataType.DT_I8:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, string.Empty);
-                                else
+                                    break;
+                                case DataType.DT_UI8:
+                                case DataType.DT_I8:
                                     rowData.Add(fieldName, buffer.GetInt64(_bufferLookup[fieldName]).ToString(_culture));
-                                break;
-                            case DataType.DT_GUID:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, String.Empty);
-                                else
+                                    break;
+                                case DataType.DT_GUID:
                                     rowData.Add(fieldName, buffer.GetGuid(_bufferLookup[fieldName]).ToString());
-                                break;
-                            case DataType.DT_DBTIMESTAMP:
-                                if (buffer.IsNull(_bufferLookup[fieldName]))
-                                    rowData.Add(fieldName, String.Empty);
-                                else
-                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("u").Replace(" ","T"));
-                                break;
+                                    break;
+                                case DataType.DT_DBTIMESTAMP:
+                                    rowData.Add(fieldName, buffer.GetDateTime(_bufferLookup[fieldName]).ToString("u").Replace(" ", "T"));
+                                    break;
+                            }
                         }
                     }
                     dataQueue.Add(rowData);

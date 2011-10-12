@@ -137,10 +137,11 @@ Namespace Adapter
                             .IsHidden = Boolean.Parse(IIf(l.@Hidden Is Nothing, False, l.@Hidden)), _
                             .MaxLength = l.@MaxLength, _
                             .IsInView = True, _
+                            .LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayRaw, _
                             .Choices = _
                             ( _
                                 From c In l.<t:CHOICES>.<t:CHOICE> _
-                                Select New ColumnChoiceData With {.Name = c.Value} _
+                                Select New ColumnChoiceData(c.Value) _
                             ).ToList() _
                        } _
                     ).Union _
@@ -156,15 +157,81 @@ Namespace Adapter
                             .IsHidden = Boolean.Parse(IIf(l.@Hidden Is Nothing, False, l.@Hidden)), _
                             .MaxLength = l.@MaxLength, _
                             .IsInView = False, _
+                            .LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayRaw, _
                             .Choices = _
                             ( _
                                 From c In l.<t:CHOICES>.<t:CHOICE> _
-                                Select New ColumnChoiceData With {.Name = c.Value} _
+                                Select New ColumnChoiceData(c.Value) _
                             ).ToList() _
                        } _
-                    ).ToList()
+                    )
 
-                Return fieldInfo
+                '' ONLY choice fields which are editable are those that are not keyed by ID (those must be updated by id)
+                '' If a choice column has an ID or is a Lookup, then it is not editable by the value
+                Dim fieldLookupSimpleChoices = _
+                    From f In fieldInfo
+                    Where (f.Choices.Count() > 0 And Not f.DoChoicesHaveID() _
+                           And f.LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayRaw)
+                    Select New ColumnData With _
+                        { _
+                            .Name = f.Name, _
+                            .DisplayName = f.DisplayName, _
+                            .SharePointType = f.SharePointType, _
+                            .IsReadOnly = f.IsReadOnly, _
+                            .IsHidden = f.IsHidden, _
+                            .MaxLength = f.MaxLength, _
+                            .IsInView = f.IsInView, _
+                            .LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayNonKeyedValue, _
+                            .Choices = _
+                            ( _
+                                From c In f.Choices _
+                                Select New ColumnChoiceData(c.ToString()) _
+                            ).ToList() _
+                        }
+
+                Dim fieldLookupValues = _
+                       From f In fieldInfo
+                        Where (f.SharePointType.StartsWith("Lookup") _
+                        And f.LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayRaw)
+                        Select New ColumnData With _
+                            { _
+                                .Name = f.Name, _
+                                .DisplayName = f.DisplayName, _
+                                .SharePointType = f.SharePointType, _
+                                .IsReadOnly = True, _
+                                .IsHidden = f.IsHidden, _
+                                .MaxLength = f.MaxLength, _
+                                .IsInView = f.IsInView, _
+                                .LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayKeyedValue, _
+                                .Choices = _
+                                ( _
+                                    From c In f.Choices _
+                                    Select New ColumnChoiceData(c.ToString()) _
+                                ).ToList() _
+                            }
+                Dim fieldLookupIDs = _
+                       From f In fieldInfo
+                        Where ((f.DoChoicesHaveID() Or (f.SharePointType.StartsWith("Lookup"))) _
+                               And f.LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayRaw)
+                        Select New ColumnData With _
+                            { _
+                                .Name = f.Name, _
+                                .DisplayName = f.DisplayName, _
+                                .SharePointType = f.SharePointType, _
+                                .IsReadOnly = f.IsReadOnly, _
+                                .IsHidden = f.IsHidden, _
+                                .MaxLength = f.MaxLength, _
+                                .IsInView = f.IsInView, _
+                                .LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayID, _
+                                .Choices = _
+                                ( _
+                                    From c In f.Choices _
+                                    Select New ColumnChoiceData(c.ToString()) _
+                                ).ToList() _
+                            }
+
+                Dim fieldChoiceValues = fieldLookupSimpleChoices.Union(fieldLookupValues).Union(fieldLookupIDs)
+                Return fieldInfo.Union(fieldCHoiceValues).ToList()
             Catch ex As System.ServiceModel.FaultException
                 Throw New SharePointUnhandledException("Unhandled SharePoint Exception", ex)
             End Try
@@ -304,10 +371,28 @@ Namespace Adapter
                 query = <Query/>
             End If
 
+            ' Find the virtual fields created to store IDs or Values for a encoded field
+            Dim vf = From f In fieldNames _
+                     Where f.EndsWith(ColumnData.SUFFIX_LOOKUPVALUE) _
+                     Or f.EndsWith(ColumnData.SUFFIX_LOOKUPID) _
+                     Or f.EndsWith(ColumnData.SUFFIX_SIMPLELOOKUP)
+
             Dim xmlViewFields = _
                 <ViewFields>
                     <%= From f In fieldNames _
                         Select <FieldRef Name=<%= f %>/> _
+                    %>
+                    <%= From f In vf _
+                        Where f.EndsWith(ColumnData.SUFFIX_LOOKUPVALUE)
+                        Select <FieldRef Name=<%= f.Replace(ColumnData.SUFFIX_LOOKUPVALUE, "") %>/> _
+                    %>
+                    <%= From f In vf _
+                        Where f.EndsWith(ColumnData.SUFFIX_LOOKUPID)
+                        Select <FieldRef Name=<%= f.Replace(ColumnData.SUFFIX_LOOKUPID, "") %>/> _
+                    %>
+                    <%= From f In vf _
+                        Where f.EndsWith(ColumnData.SUFFIX_SIMPLELOOKUP)
+                        Select <FieldRef Name=<%= f.Replace(ColumnData.SUFFIX_SIMPLELOOKUP, "") %>/> _
                     %>
                 </ViewFields>
 
@@ -323,18 +408,70 @@ Namespace Adapter
                 Dim listItemData = GetSharePointListItems(listName, viewId, query, xmlViewFields, pagingSize, xmlQueryOptions)
                 xmlResults.Add(listItemData...<z:row>)
                 nextPosition = listItemData...<rs:data>.@ListItemCollectionPositionNext
-
             Loop Until nextPosition Is Nothing
 
             ' We only want to return fields where we have field meta information loaded, and where the field is not hidden.
             Dim outputData = From row In xmlResults.Elements() _
                              Select ( _
-                                From attr In row.Attributes _
-                                Join field In fieldNames On "ows_" + field Equals attr.Name.LocalName _
+                                (From attr In row.Attributes _
+                                Join field In fieldNames.Except(vf) On "ows_" + field Equals attr.Name.LocalName _
                                 Where attr.Value.Trim().Length > 0 _
-                                Select field, attr.Value).ToDictionary(Function(x) x.field, Function(x) x.Value)
+                                Select field, Value = attr.Value).Union _
+ _
+                                (From attr In row.Attributes _
+                                Join field In fieldNames On "ows_" + field.Replace(ColumnData.SUFFIX_SIMPLELOOKUP, "") Equals attr.Name.LocalName _
+                                Where attr.Value.Trim().Length > 0 _
+                                And field.EndsWith(ColumnData.SUFFIX_SIMPLELOOKUP) _
+                                Select field, Value = DecodeValue(attr.Value, 0, 1)).Union _
+ _
+                                (From attr In row.Attributes _
+                                Join field In fieldNames On "ows_" + field.Replace(ColumnData.SUFFIX_LOOKUPVALUE, "") Equals attr.Name.LocalName _
+                                Where attr.Value.Trim().Length > 0 _
+                                And field.EndsWith(ColumnData.SUFFIX_LOOKUPVALUE) _
+                                Select field, Value = DecodeValue(attr.Value, 1, 2)).Union _
+ _
+                                (From attr In row.Attributes _
+                                Join field In fieldNames On "ows_" + field.Replace(ColumnData.SUFFIX_LOOKUPID, "") Equals attr.Name.LocalName _
+                                Where attr.Value.Trim().Length > 0 _
+                                And field.EndsWith(ColumnData.SUFFIX_LOOKUPID) _
+                                Select field, Value = DecodeValue(attr.Value, 0, 2)) _
+                                .ToDictionary(Function(x) x.field, Function(x) x.Value))
 
             Return outputData.ToList()
+
+        End Function
+
+        ''' <summary>
+        ''' Decode the data from the sharepoint list to make it easier to understand 
+        ''' </summary>
+        ''' <param name="encodedData"></param>
+        ''' <param name="startIndex"></param>
+        ''' <param name="stepIndex"></param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        Public Function DecodeValue(ByVal encodedData As String, ByVal startIndex As Integer, ByVal stepIndex As Integer) As String
+
+            Dim workingData As String = encodedData
+            If (workingData.StartsWith(";#")) Then
+                workingData = workingData.Remove(0, 2)
+            End If
+            If (workingData.EndsWith(";#")) Then
+                workingData = workingData.Remove(workingData.Length - 2)
+            End If
+
+            Dim valArray = workingData.Split({";#"}, StringSplitOptions.None)
+            If valArray.Length >= stepIndex Then
+                Dim decodedValueString As String = ""
+                For i = startIndex To valArray.Length - 1 Step stepIndex
+                    decodedValueString += valArray(i)
+                    If (i + stepIndex <= (valArray.Length - 1)) Then
+                        decodedValueString += Environment.NewLine
+                    End If
+                Next
+                Return decodedValueString
+            Else
+                Return encodedData
+            End If
 
         End Function
 
@@ -378,6 +515,49 @@ Namespace Adapter
             Dim client = _sharepointClient
             Return client.GetListAndView(listName.Trim(), viewId)
         End Function
+
+        ''' <summary>
+        ''' Update the data to conform to Sharepoint Rules, in particular for Lookups
+        ''' </summary>
+        ''' <param name="activeFields"></param>
+        ''' <param name="fieldValueList"></param>
+        ''' <remarks></remarks>
+        Public Sub PreProcessDataForSharePoint(ByVal activeFields As IEnumerable(Of ColumnData), ByVal fieldValueList As IEnumerable(Of Dictionary(Of String, String)))
+
+            If (fieldValueList.Count() > 0) Then
+                Dim choiceDataElements = (From fld In activeFields
+                                         Where fld.LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayNonKeyedValue
+                                         Select fld.Name).ToArray()
+
+                Dim lookupDataElements = (From fld In activeFields
+                                         Where fld.LookupFieldDisplay = ColumnData.EncodedFieldDisplayEnum.DisplayID
+                                         Select fld.Name).ToArray()
+
+                For Each dataRow In fieldValueList
+                    For Each k In choiceDataElements
+                        If (dataRow.ContainsKey(k)) Then
+                            If (dataRow(k).Contains(Environment.NewLine)) Then
+                                dataRow(k) = ";#" & dataRow(k).Replace(Environment.NewLine, ";#") & ";#"
+                            End If
+                        End If
+
+                    Next
+
+                    For Each k In lookupDataElements
+                        If (dataRow.ContainsKey(k)) Then
+                            If (dataRow(k).Contains(Environment.NewLine)) Then
+                                dataRow(k) = dataRow(k).Replace(Environment.NewLine, ";#TEXT;#")
+                            End If
+                        End If
+                    Next
+
+                Next
+
+            End If
+
+
+        End Sub
+
 
         ''' <summary>
         ''' Perform updates in batches to SharePoint
@@ -459,8 +639,10 @@ Namespace Adapter
                      <action>Success</action>
                      <row><%= _
                               From col In row.<z:row>.Attributes _
-                              Join fld In activeFields On "ows_" + fld.Name Equals col.Name _
-                              Select New XAttribute(fld.Name, col.Value) _
+                              Join fld In activeFields On "ows_" + fld.SourceFieldName Equals col.Name _
+                              Where fld.LookupFieldDisplay = SharePointUtility.DataObject.ColumnData.EncodedFieldDisplayEnum.DisplayRaw _
+                              Select New XAttribute(fld.SourceFieldName, col.Value) _
+                              Distinct
                           %></row>
                  </result>
 
@@ -474,8 +656,10 @@ Namespace Adapter
                      <errorDescription><%= LookupErrorCode(row.<t:ErrorCode>.Value) %></errorDescription>
                      <row><%= _
                               From col In row.<z:row>.Attributes _
-                              Join fld In activeFields On "ows_" + fld.Name Equals col.Name _
-                              Select New XAttribute(fld.Name, col.Value) _
+                              Join fld In activeFields On "ows_" + fld.SourceFieldName Equals col.Name _
+                              Where fld.LookupFieldDisplay = SharePointUtility.DataObject.ColumnData.EncodedFieldDisplayEnum.DisplayRaw _
+                              Select New XAttribute(fld.SourceFieldName, col.Value) _
+                              Distinct
                           %></row>
                  </result>
 
@@ -581,6 +765,7 @@ Namespace Adapter
             MyBase.Finalize()
         End Sub
 #End Region
+
 
 
     End Class

@@ -21,7 +21,7 @@ using IDTSRuntimeConnection = Microsoft.SqlServer.Dts.Pipeline.Wrapper.IDTSRunti
 namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 {
 	[DtsPipelineComponent(DisplayName = "SharePoint List Source",
-		CurrentVersion = 7,
+		CurrentVersion = 8,
 		IconResource = "Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Icons.SharePointSource.ico",
 		Description = "Extract data from SharePoint lists",
 		ComponentType = ComponentType.SourceAdapter)]
@@ -38,6 +38,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
         private const string C_ISRECURSIVE = "IsRecursive";
         private const string C_INCLUDEFOLDERS = "IncludeFolders";
         private const string C_INCLUDEHIDDEN = "IncludeHiddenColumns";
+        private const string C_DECODELOOKUPS = "DecodeLookupColumns";
         private const string C_CONNECTIONMANAGER = "UseConnectionManager";
         private Dictionary<string, int> _bufferLookup;
         private Dictionary<string, DataType> _bufferLookupDataType;
@@ -108,6 +109,11 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             includeHidden.Value = Enums.TrueFalseValue.False;
             includeHidden.Description = "Whether to return colunmns SharePoint considers hidden";
             includeHidden.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+            var decodeLookups = ComponentMetaData.CustomPropertyCollection.New();
+            decodeLookups.Name = C_DECODELOOKUPS;
+            decodeLookups.Value = Enums.TrueFalseValue.False;
+            decodeLookups.Description = "Whether to decode lookups and make an ID/Value column for each (newline delimited)";
+            decodeLookups.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
 
             var useConnectionManager = ComponentMetaData.CustomPropertyCollection.New();
             useConnectionManager.Name = C_CONNECTIONMANAGER;
@@ -398,6 +404,12 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 where c.Name == "ID"
                 select c;
 
+            bool expandLookups = false;
+            var expandLookupsProperty = FindCustomProperty(C_DECODELOOKUPS);
+            if ((Enums.TrueFalseValue)expandLookupsProperty.Value == Enums.TrueFalseValue.True)
+                expandLookups = true;
+
+            
             // Consult the property to determine if we're doing any filtering here
             bool includeHidden = false;
             var includeHiddenProperty = FindCustomProperty(C_INCLUDEHIDDEN);
@@ -406,10 +418,41 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             var accessibleColumns =
                 from c in columnList
-                where c.IsHidden == includeHidden
+                where (c.IsHidden == includeHidden
+                  || c.IsHidden == false) 
                 select c;
 
-            return idField.Union(accessibleColumns).ToList();
+            if (expandLookups)
+            {
+                // Add the columns that are not raw and remove the 'raw' columns.
+                var lookupColumns =
+                    from c in accessibleColumns
+                    where c.LookupFieldDisplay != SharePointUtility.DataObject.ColumnData.EncodedFieldDisplayEnum.DisplayRaw
+                    select c;
+
+                var exclusionList = 
+                    from x in accessibleColumns
+                    join c in lookupColumns on x.SourceFieldName equals c.SourceFieldName
+                    where x.LookupFieldDisplay == SharePointUtility.DataObject.ColumnData.EncodedFieldDisplayEnum.DisplayRaw
+                    select x;
+
+                var outputColumns = accessibleColumns.Except(exclusionList);
+
+                return idField.Union(outputColumns).ToList();
+            }
+            else
+            {
+                // Add the columns that are not raw and remove the 'raw' columns.
+                var lookupColumns =
+                    from c in accessibleColumns
+                    where c.LookupFieldDisplay != SharePointUtility.DataObject.ColumnData.EncodedFieldDisplayEnum.DisplayRaw
+                    select c;
+
+                var outputColumns = accessibleColumns.Except(lookupColumns);
+
+                return idField.Union(outputColumns).ToList();
+            
+            }
         }
 
         /// <summary>
@@ -602,6 +645,15 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 includeHidden.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
             }
 
+            var decodeLookups = FindCustomProperty(C_DECODELOOKUPS);
+            if (decodeLookups == null)
+            {
+                decodeLookups = ComponentMetaData.CustomPropertyCollection.New();
+                decodeLookups.Name = C_DECODELOOKUPS;
+                decodeLookups.Value = Enums.TrueFalseValue.False;
+                decodeLookups.Description = "Whether to decode lookups and make an ID/Value column for each (newline delimited)";
+                decodeLookups.TypeConverter = typeof(Enums.TrueFalseValue).AssemblyQualifiedName;
+            }
             var connectionManager = FindCustomProperty(C_CONNECTIONMANAGER);
             if (connectionManager == null)
             {

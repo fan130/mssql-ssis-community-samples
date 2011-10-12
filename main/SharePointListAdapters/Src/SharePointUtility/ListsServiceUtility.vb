@@ -152,9 +152,34 @@ Public NotInheritable Class ListServiceUtility
 
             ' Get the public fields
             Dim fields = listsProxy.GetSharePointFields(listName, viewId)
-            Dim activeFields = From f In fields _
+            Dim availableFields = From f In fields _
                                Where f.IsHidden = False And f.IsReadOnly = False
 
+            ' Make sure there are no 'duplicate' fields being updated in the set, such as a lookup raw field and a lookup id field.
+            Dim uniqueFieldNames = (From row In fieldValueList
+                                   From col In row.Keys
+                                   Select col).Distinct()
+
+            ' Determining the active fields used in the dataset will make the pre-process much easier and not cause it to scan the dataset again
+            Dim activeFields = From col In uniqueFieldNames
+                                Join fld In availableFields On fld.Name Equals col _
+                                Select fld
+
+            If (fieldValueList.Count() > 0) Then
+                Dim dupeCheck = From fld In activeFields
+                                Group By fld.SourceFieldName Into g = Count() _
+                                Where g > 1 _
+                                Select SourceFieldName
+
+                If (dupeCheck.Count() > 0) Then
+                    Dim dupeValues = String.Join(",", dupeCheck.ToArray())
+                    Throw New SharePointUnhandledException( _
+                        "A Lookup raw field and a lookup ID virtual field are detected. Remove the one not being edited:" & dupeValues)
+                End If
+            End If
+
+            ' Reformat any lookup fields and such to make SharePoint happy
+            listsProxy.PreProcessDataForSharePoint(activeFields, fieldValueList)
 
             ' Build up the linq query for the inserts
             Dim batchInsertItems = From row In fieldValueList _
@@ -164,7 +189,7 @@ Public NotInheritable Class ListServiceUtility
                                          <Field Name="ID">New</Field>
                                          <%= From col In row.Keys _
                                              Join fld In activeFields On fld.Name Equals col _
-                                             Select <Field Name=<%= col %>><%= row(col) %></Field> _
+                                             Select <Field Name=<%= fld.SourceFieldName %>><%= row(col) %></Field> _
                                          %>
                                      </Method>
 
@@ -177,7 +202,7 @@ Public NotInheritable Class ListServiceUtility
                                          <%= From col In row.Keys _
                                              Join fld In activeFields On fld.Name Equals col _
                                              Where col <> "ID" _
-                                             Select <Field Name=<%= col %>><%= row(col) %></Field> _
+                                             Select <Field Name=<%= fld.SourceFieldName %>><%= row(col) %></Field> _
                                          %>
                                      </Method>
 
