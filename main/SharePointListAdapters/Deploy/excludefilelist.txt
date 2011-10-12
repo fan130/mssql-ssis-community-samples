@@ -1,3 +1,4 @@
 assemblyinfo.cs
+assemblyinfo.vb
 .dll
 .obj

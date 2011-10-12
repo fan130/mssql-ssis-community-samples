@@ -6,7 +6,7 @@ attrib -r /s
 xcopy ..\Src\*.cs sql2005 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs sql2008 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2012 /s /y /EXCLUDE:excludefilelist.txt
-xcopy ..\Src\SharePointUtility\*.cs SharePointUtility /s /y /EXCLUDE:excludefilelist.txt
+xcopy ..\Src\SharePointUtility\*.vb SharePointUtility /s /y /EXCLUDE:excludefilelist.txt
 del *.pdb /s
 del *.dll /s
 del *.msi /s
