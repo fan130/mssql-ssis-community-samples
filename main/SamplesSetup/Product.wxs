@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Name="Microsoft SQL Server Integration Services Samples" Id="b6ccbedb-49dd-4f4a-aa16-58e6c5d58d8d" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft" UpgradeCode="371fa462-4b80-4fde-a67c-9fdc2afcc914">
+		<Package InstallerVersion="200" Compressed="yes" />
+
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+    <Property Id="SSIS64">
+      <RegistrySearch Type="directory" Id="SSIS64" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="yes"/>
+    </Property>
+    <Property Id="SSIS32">
+      <RegistrySearch Type="directory" Id="SSIS32" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="no"/>
+    </Property>
+
+    <Condition Message="SQL Server Integration Services is not installed on this computer.  Please install SQL Server Integration Services before running this installer.">
+      <![CDATA[Installed OR SSIS64 OR SSIS32]]>
+    </Condition>
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Add a new component here for each sample that needs to have one or more DLLs GACed. -->
+      <Component Id="SpatialComponentsGAC" Guid="34FE3EB7-79D4-4ADE-B34E-962B77D9BD14">
+        <File Id="SpatialComponentsAssemblyGAC" Name="SpatialComponents.dll" Source="bin\SpatialComponents.dll" Assembly=".net" KeyPath="yes"/>
+      </Component>
+      
+      <!-- Add a new component here for each sample that needs one or more files loaded into the SSIS (DTS) install directory, on a 64-bit machine.
+           Use a brand-new GUID for each new Component. -->
+      <Directory Id="SSIS64" Name="SSIS64" >
+        <Directory Id="PipelineComponents64" Name="PipelineComponents">
+          <Component Id="SpatialComponents64" Guid="943F001A-A412-42D3-9CD3-CCC520F9FD4C">
+            <File Id="SpatialComponentAssembly64" Name="SpatialComponents.dll" Source="bin\SpatialComponents.dll"/>
+          </Component>
+          <Component Id="TVPMergeDest64" Guid="F0647B54-270D-4764-BBAF-D82213E4D5BC">
+            <File Id="TVPMergeDestAssembly64" Name="TVPMergeDest.dll" Source="bin\TVPMergeDest.dll"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <!-- Add a new component here for each sample that needs one or more files loaded into the SSIS (DTS) install directory, on a 32-bit machine.
+           Use a brand new GUID for each new Component.-->
+      <Directory Id="SSIS32" Name="SSIS32">
+        <Directory Id="PipelineComponents32" Name="PipelineComponents">
+          <Component Id="SpatialComponents32" Guid="A97533D1-52A2-49B2-ACCA-680D9BFB191A">
+            <File Id="SpatialComponentAssembly32" Name="SpatialComponents.dll" Source="bin\SpatialComponents.dll"/>
+          </Component>
+          <Component Id="TVPMergeDest32" Guid="F2707992-5152-40B3-8516-911ED0BCFC7E">
+            <File Id="TVPMergeDestAssembly32" Name="TVPMergeDest.dll" Source="bin\TVPMergeDest.dll"/>
+            <File Id="MergeUI" Name="MergeUI.dll" Source="bin\MergeUI.dll"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+    </Directory>
+
+    <!-- Create a new ComponentGroup for each sample, referencing the components you've defined above. --><ComponentGroup Id="SpatialComponents">
+      <ComponentRef Id="SpatialComponentsGAC"/>
+      <ComponentRef Id="SpatialComponents64"/>
+      <ComponentRef Id="SpatialComponents32"/>
+    </ComponentGroup>
+
+    <ComponentGroup Id="MergeDest">
+      <ComponentRef Id="TVPMergeDest64"/>
+      <ComponentRef Id="TVPMergeDest32"/>
+    </ComponentGroup>
+    
+    
+    <Feature Id="Complete" Title="All Sample Components" Description ="Installs all sample components into your SQL Server installation."
+             Display="expand" Level="1">
+      
+      <!-- Add a new Feature for each sample.  Set the Title attribute to the human-readable name.
+           Level=1000 causes the component NOT to be selected by default when the user installs.
+       -->
+      <Feature Id="SpatialComponentsFeature" Title="Spatial Components" Level="1000">
+        <ComponentGroupRef Id="SpatialComponents" />
+      </Feature>
+
+      <Feature Id="MergeDestFeature" Title="MERGE Destination" Level="1000">
+        <ComponentGroupRef Id="MergeDest"/>
+      </Feature>
+      
+    </Feature>
+    
+    <!-- references the default 'FeatureTree' UI -->
+    <UIRef Id="WixUI_FeatureTree"/>
+	</Product>
+</Wix>
