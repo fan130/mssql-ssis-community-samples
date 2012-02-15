@@ -669,7 +669,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("SSIS.ExecutePackageTask.2")]
+    [ExecID("SSIS.ExecutePackageTask.3")]
     public class EzExecPackage : EzTask
     {
         public EzExecPackage(EzContainer parent) : base(parent) { }
@@ -721,39 +721,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("Microsoft.SqlServer.Dts.Tasks.ActiveXScriptTask.ActiveXScriptTask, Microsoft.SqlServer.ActiveXScriptTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
-    public class EzActiveXScript : EzTask
-    {
-        public EzActiveXScript(EzContainer parent) : base(parent) { EntryMethod = "Main"; ScriptingLanguage = "VBScript"; }
-        public EzActiveXScript(EzContainer parent, TaskHost task) : base(parent, task) { }
 
-        public string EntryMethod
-        {
-            get { return (string)host.Properties["EntryMethod"].GetValue(host); }
-            set { host.Properties["EntryMethod"].SetValue(host, value); }
-        }
-
-        public string ExecValueVariable
-        {
-            get { return (string)host.Properties["ExecValueVariable"].GetValue(host); }
-            set { host.Properties["ExecValueVariable"].SetValue(host, value); }
-        }
-
-        public string ScriptingLanguage
-        {
-            get { return (string)host.Properties["ScriptingLanguage"].GetValue(host); }
-            set { host.Properties["ScriptingLanguage"].SetValue(host, value); }
-        }
-
-        public string ScriptText
-        {
-            get { return (string)host.Properties["ScriptText"].GetValue(host); }
-            set { host.Properties["ScriptText"].SetValue(host, value); }
-        }
-    }
-
-
-    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteSQLTask.ExecuteSQLTask, Microsoft.SqlServer.SQLTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteSQLTask.ExecuteSQLTask, Microsoft.SqlServer.SQLTask, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzExecSqlTask : EzTask
     {
         public EzExecSqlTask(EzContainer parent) : base(parent) { InitializeTask(); }
@@ -836,7 +805,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("SSIS.Pipeline.2")]
+    [ExecID("SSIS.Pipeline.3")]
     public class EzDataFlow : EzTask
     {
         internal List<EzComponent> m_components = new List<EzComponent>();
@@ -1046,7 +1015,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [ExecID("Microsoft.SqlServer.Dts.Tasks.TransferDatabaseTask.TransferDatabaseTask, Microsoft.SqlServer.TransferDatabasesTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.TransferDatabaseTask.TransferDatabaseTask, Microsoft.SqlServer.TransferDatabasesTask, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzTransferDBTask : EzTask
     {
         public EzTransferDBTask(EzContainer parent) : base(parent) { }
@@ -1244,7 +1213,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
     }
 
 
-    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteProcess.ExecuteProcess, Microsoft.SqlServer.ExecProcTask,Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.ExecuteProcess.ExecuteProcess, Microsoft.SqlServer.ExecProcTask,Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzExecProcessTask : EzTask
     {
         public EzExecProcessTask(EzContainer parent) : base(parent) { }
@@ -1346,7 +1315,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
     }
 
 
-    [ExecID("Microsoft.SqlServer.Dts.Tasks.FileSystemTask.FileSystemTask, Microsoft.SqlServer.FileSystemTask, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [ExecID("Microsoft.SqlServer.Dts.Tasks.FileSystemTask.FileSystemTask, Microsoft.SqlServer.FileSystemTask, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzFileSystemTask : EzTask
     {
         public EzFileSystemTask(EzContainer parent) : base(parent) { }
@@ -1419,7 +1388,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                     throw new ExecutableException("The property \"IsDestinationPathVariable\" is set to false. Please specify a file connection manager for the DestinationConnection");
                 if (!host.Variables.Contains((string)value))
                     throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));
-                host.Properties["DestinationVariable"].SetValue(host, value);          
+                host.Properties["Destination"].SetValue(host, value);          
             }
         }
 
@@ -1428,11 +1397,11 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             get { return (string)host.Properties["SourceVariable"].GetValue(host); }
             set
             {
-                if (!IsDestinationPathVariable)
+                if (!IsSourcePathVariable)
                     throw new ExecutableException("The property \"IsSourcePathVariable\" is set to false. Please specify a file connection manager for the SourceConnection");
                 if (!host.Variables.Contains((string)value))
                     throw new ExecutableException(string.Format("The specified variable {0} does not exist!", (string)value));                 
-                host.Properties["SourceVariable"].SetValue(host, value);    
+                host.Properties["Source"].SetValue(host, value);    
             }
         }
        

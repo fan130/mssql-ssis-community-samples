@@ -28,6 +28,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
     public class EzConnectionManager
     {
         protected ConnectionManager m_conn;
+        protected EzProject m_parentProject;
+        protected string m_streamName;
         protected EzPackage m_parent;
         public static implicit operator ConnectionManager(EzConnectionManager c) 
         {
@@ -43,6 +45,28 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             m_parent = parent; 
             m_conn = parent.Connections.Add(GetConnMgrID());
             Name = GetType().Name + ID;
+        }
+
+        public EzConnectionManager(EzProject parentProject, string streamName)
+        {
+            if (parentProject == null)
+                throw new ArgumentNullException("parentProject");
+            m_parentProject = parentProject;
+            if (!parentProject.ConnectionManagerItems.Contains(streamName))
+            {
+                m_conn = parentProject.ConnectionManagerItems.Add(GetConnMgrID(), streamName).ConnectionManager;
+                m_conn.Name = GetType().Name + ID;
+                Name = m_conn.Name;
+                m_streamName = streamName;
+                return;
+            }
+            
+            m_conn = parentProject.ConnectionManagerItems[streamName].ConnectionManager;
+
+            if (m_conn.CreationName != GetConnMgrID())
+                throw new IncorrectAssignException(string.Format("Connection manager with streamName {0} of type {1} already exists and is incompatible with type {2}",
+                    streamName, m_conn.CreationName, GetConnMgrID()));
+
         }
 
         public EzConnectionManager(EzPackage parent, string name) 
@@ -62,7 +86,27 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                     name, m_conn.CreationName, GetConnMgrID()));
         }
 
+        public EzConnectionManager(EzProject parentProject, string streamName, string name)
+        {
+            if (parentProject == null)
+                throw new ArgumentNullException("parentProject");
+            m_parentProject = parentProject;
+            if (!parentProject.ConnectionManagerItems.Contains(streamName))
+            {
+                m_conn = parentProject.ConnectionManagerItems.Add(GetConnMgrID(), streamName).ConnectionManager;
+                m_conn.Name = name;
+                Name = name;
+                m_streamName = streamName;
+                return;
+            }
+            m_conn = parentProject.ConnectionManagerItems[streamName].ConnectionManager;
+            if (m_conn.CreationName != GetConnMgrID())
+                throw new IncorrectAssignException(string.Format("Connection manager with name {0} of type {1} already exists and is incompatible with type {2}",
+                    streamName, m_conn.CreationName, GetConnMgrID()));
+        }
+
         public EzConnectionManager(EzPackage parent, ConnectionManager c) { Assign(parent, c); }
+        public EzConnectionManager(EzProject parentProject, ConnectionManager c) { Assign(parentProject, c); }
 
         public string GetConnMgrID()
         {
@@ -101,6 +145,53 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
             return this;
         }
 
+        public virtual EzConnectionManager Assign(EzProject parentProject, ConnectionManager c)
+        {
+            m_conn = c;
+            m_parentProject = parentProject;
+            return this;
+        }
+
+        public void PromoteToSCM(EzProject project, string streamName)
+        {
+            bool found = false;
+            int CMPackageLocation = 0;
+            if (m_parent == null)
+                throw new ArgumentNullException("CM not attached to a package");
+            if (project == null)
+                throw new ArgumentNullException("Project Null");
+
+            for (int i = 0; i <m_parent.Connections.Count; i++)
+            {
+                if (m_parent.Connections[i].ID == ID)
+                    
+                {
+                    found = true;
+                    CMPackageLocation = i;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                m_parent.Connections.Remove(CMPackageLocation);
+                project.ConnectionManagerItems.Join(this, streamName);
+            }
+
+        }
+
+        public void DemotetoPackageCM(EzPackage package)
+        {
+            if (m_parentProject == null)
+                throw new ArgumentNullException("CM not attached to a project");
+            if (package == null)
+                throw new ArgumentNullException("Project Null");
+
+            m_parentProject.ConnectionManagerItems.Remove(m_streamName);
+            package.Connections.Join(this);
+
+        }
+
         public string Description
         {
             get { return EzExecutable.GetEzDescription(m_conn.Description); }
@@ -109,8 +200,11 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
 
         public ConnectionManager CM { get { return m_conn; } }
         public EzPackage Parent { get { return m_parent; } }
+        public EzProject ParentProject { get { return m_parentProject; } }
         public string Name { get { return m_conn.Name; } set { m_conn.Name = value; } }
         public string ID { get { return m_conn.ID; } }
+        public string StreamName { get { return m_streamName; } }
+        public DTSProtectionLevel ProtectionLevel { get { return m_conn.ProtectionLevel; } }
         public bool DelayValidation { get { return m_conn.DelayValidation; } set { m_conn.DelayValidation = value; } }
         public string ConnectionString 
         { 
@@ -120,7 +214,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 if (CompareConnectionStrings(m_conn.ConnectionString, value))
                     return;
                 m_conn.ConnectionString = value; 
-                Parent.ReinitializeMetaData(); 
+                if (Parent != null)
+                    Parent.ReinitializeMetaData();
             } 
         }
 
@@ -149,6 +244,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzOleDbConnectionManager(EzPackage parent) : base(parent) { }
         public EzOleDbConnectionManager(EzPackage parent, string name) : base(parent, name) { }
         public EzOleDbConnectionManager(EzPackage parent, ConnectionManager c) : base(parent, c) { }
+        public EzOleDbConnectionManager(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzOleDbConnectionManager(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
 
         public string InitialCatalog 
         {
@@ -193,6 +290,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzExcelCM(EzPackage parent) : base(parent) { }
         public EzExcelCM(EzPackage parent, string name) : base(parent, name) { }
         public EzExcelCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
+        public EzExcelCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzExcelCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
     }
 
     /// <summary>
@@ -203,10 +302,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzSqlOleDbCM(EzPackage parent) : base(parent) { }
         public EzSqlOleDbCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzSqlOleDbCM(EzPackage parent, string name) : base(parent, name) { }
+        public EzSqlOleDbCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzSqlOleDbCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
 
         public void SetConnectionString(string server, string db)
         {
-            ConnectionString = string.Format("provider=sqlncli10;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
+            ConnectionString = string.Format("provider=sqlncli11;integrated security=sspi;database={0};server={1};OLE DB Services=-2;Auto Translate=False;Connect Timeout=300;",
                 db, server);
         }
     }
@@ -216,6 +317,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzDb2OleDbCM(EzPackage parent) : base(parent) { }
         public EzDb2OleDbCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzDb2OleDbCM(EzPackage parent, string name) : base(parent, name) { }
+        public EzDb2OleDbCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzDb2OleDbCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
 
         public void SetConnectionString(string server, string db, string user, string pwd)
         {
@@ -237,7 +341,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzOracleOleDbCM(EzPackage parent) : base(parent) { }
         public EzOracleOleDbCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzOracleOleDbCM(EzPackage parent, string name) : base(parent, name) { }
-
+        public EzOracleOleDbCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzOracleOleDbCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
         /// <summary>
         /// Builds connection string for Oracle OLEDB provider
         /// </summary>
@@ -269,6 +375,8 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzFileCM(EzPackage parent) : base(parent) { }
         public EzFileCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzFileCM(EzPackage parent, string name) : base(parent, name) { }
+        public EzFileCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzFileCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
 
         // DataSourceID property does not exist.  Using the property throws an exception, so
         // the property was removed.
@@ -307,8 +415,10 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzFlatFileCM(EzPackage parent) : base(parent) { }
         public EzFlatFileCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzFlatFileCM(EzPackage parent, string name) : base(parent, name) { }
-
-        public int CodePage 
+        public EzFlatFileCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzFlatFileCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
+        public int CodePage
         {
             get { return (int)m_conn.Properties["CodePage"].GetValue(m_conn); }
             set { m_conn.Properties["CodePage"].SetValue(m_conn, value); Parent.ReinitializeMetaData(); }
@@ -455,7 +565,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzAdoNetCM(EzPackage parent) : base(parent) { }
         public EzAdoNetCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzAdoNetCM(EzPackage parent, string name) : base(parent, name) { }
-        
+        public EzAdoNetCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzAdoNetCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
         public string InitialCatalog
         {
             get { return (string)m_conn.Properties["InitialCatalog"].GetValue(m_conn); }
@@ -499,7 +611,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzSqlAdoNetCM(EzPackage parent) : base(parent) { }
         public EzSqlAdoNetCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzSqlAdoNetCM(EzPackage parent, string name) : base(parent, name) { }
-
+        public EzSqlAdoNetCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzSqlAdoNetCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
         public virtual void SetConnectionString(string server, string db)
         {
             ConnectionString = string.Format("Data Source={0};Initial Catalog={1};Integrated Security=True;Connect Timeout=300;",
@@ -513,7 +627,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzOracleAdoNetCM(EzPackage parent) : base(parent) { }
         public EzOracleAdoNetCM(EzPackage parent, ConnectionManager c) : base(parent, c) { }
         public EzOracleAdoNetCM(EzPackage parent, string name) : base(parent, name) { }
-
+        public EzOracleAdoNetCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { }
+        public EzOracleAdoNetCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { }
+     
         public virtual void SetConnectionString(string server, string user, string pwd, bool unicode)
         {
             ConnectionString = string.Format("Data Source={0};User ID = {1}; Password = {2}; Unicode = {3};",
@@ -611,7 +727,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzCacheCM(EzPackage parent) : base(parent) { m_cmcache = (RunWrap.IDTSConnectionManagerCache100)m_conn.InnerObject; }
         public EzCacheCM(EzPackage parent, ConnectionManager c) : base(parent, c) { m_cmcache = (RunWrap.IDTSConnectionManagerCache100)m_conn.InnerObject; }
         public EzCacheCM(EzPackage parent, string name) : base(parent, name) { m_cmcache = (RunWrap.IDTSConnectionManagerCache100)m_conn.InnerObject; }
-
+        public EzCacheCM(EzProject parentProject, string streamName) : base(parentProject, streamName) { m_cmcache = (RunWrap.IDTSConnectionManagerCache100)m_conn.InnerObject; }
+        public EzCacheCM(EzProject parentProject, string streamName, string name) : base(parentProject, streamName, name) { m_cmcache = (RunWrap.IDTSConnectionManagerCache100)m_conn.InnerObject; }
+     
         private RunWrap.IDTSConnectionManagerCache100 m_cmcache;
         private CacheCols m_cols;
 

@@ -76,6 +76,56 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
+    public class EzSrcDestMultiStreamPackage<SrcType, SrcConnType, DestType, DestConnType> : EzDataFlowPackage
+        where SrcType : EzAdapter
+        where SrcConnType : EzConnectionManager
+        where DestType : EzAdapter
+        where DestConnType : EzConnectionManager
+    {
+        public DestConnType DestConn;
+        public DestType Dest;
+        public SrcConnType SourceConn;
+        public SrcType Source;
+        public List<KeyValuePair<EzAdapter, EzAdapter>> SourceDestPairs = new List<KeyValuePair<EzAdapter, EzAdapter>>();
+
+        public EzSrcDestMultiStreamPackage(int streamCount)
+            : base()
+        {
+            SourceConn = Activator.CreateInstance(typeof(SrcConnType), new object[] { this }) as SrcConnType;
+            DestConn = Activator.CreateInstance(typeof(DestConnType), new object[] { this }) as DestConnType;
+
+            for (int i = 0; i < streamCount; i++)
+            {
+                Source = Activator.CreateInstance(typeof(SrcType), new object[] { DataFlow }) as SrcType;
+                Dest = Activator.CreateInstance(typeof(DestType), new object[] { DataFlow }) as DestType;
+
+                KeyValuePair<EzAdapter, EzAdapter> connectionPair = new KeyValuePair<EzAdapter, EzAdapter>(Source, Dest);
+                SourceDestPairs.Add(connectionPair);
+            }
+        }
+
+        public void AttachConnections(SrcConnType sourceConnection, DestConnType destConnection)
+        {
+            foreach (KeyValuePair<EzAdapter, EzAdapter> connectionPair in SourceDestPairs)
+            {
+                SrcType source = (SrcType)connectionPair.Key;
+                DestType dest = (DestType)connectionPair.Value;
+
+                source.Connection = sourceConnection;
+                dest.Connection = destConnection;
+
+                dest.AttachTo(source);
+            }
+        }
+
+        public EzSrcDestMultiStreamPackage(Package p) : base(p) { }
+
+        public static implicit operator EzSrcDestMultiStreamPackage<SrcType, SrcConnType, DestType, DestConnType>(Package p)
+        {
+            return new EzSrcDestMultiStreamPackage<SrcType, SrcConnType, DestType, DestConnType>(p);
+        }
+    }
+
     public class EzSrcDestPackage<SrcType, SrcConnType, DestType, DestConnType> : EzSrcPackage<SrcType, SrcConnType>
         where SrcType : EzAdapter
         where SrcConnType : EzConnectionManager

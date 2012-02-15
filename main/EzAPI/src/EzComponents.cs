@@ -4,8 +4,6 @@
 
 
 using System;
-using System.Text;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +14,7 @@ using Microsoft.SqlServer.Dts.Runtime.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline.Wrapper;
 using Microsoft.SqlServer.Dts.Pipeline;
 using Microsoft.DataTransformationServices.Controls;
+using Microsoft.SqlServer.VSTAHosting;
 
 namespace Microsoft.SqlServer.SSIS.EzAPI
 {
@@ -424,6 +423,17 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 case "IdentificationString":
                 case "Component":
                     return true;
+                case "ID": //To support merge and diff we are stripping out these pipeline IDs on save and replacing them with more robust references and then regenerating IDs on load.
+                    return true;
+                case "LineageID":
+                    return true;
+                case "ExternalMetadataColumnID":
+                    return true;
+                case "SynchronousInputID":
+                    return true;
+                case "Value":
+                    return true;
+
             }
             return false;
         }
@@ -1034,14 +1044,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{BCEFE59B-6819-47F7-A125-63753B33ABB7}")]
+    [CompID("{165A526D-D5DE-47FF-96A6-F8274C19826B}")]
     public class EzOleDbSource : EzOleDbAdapter
     {
         public EzOleDbSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
         public EzOleDbSource(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
     }
 
-    [CompID("{5A0B62E8-D91D-49F5-94A5-7BE58DE508F0}")]
+    [CompID("{4ADA7EAA-136C-4215-8098-D7A7C27FC0D1}")]
     public class EzOleDbDestination : EzOleDbAdapter
     {
         public EzOleDbDestination(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1073,7 +1083,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{5ACD952A-F16A-41D8-A681-713640837664}")]
+    [CompID("{D23FD76B-F51D-420F-BBCB-19CBF6AC1AB4}")]
     public class EzFlatFileSource : EzAdapter
     {
         public EzFlatFileSource(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1097,7 +1107,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{D658C424-8CF0-441C-B3C4-955E183B7FBA}")]
+    [CompID("{8DA75FED-1B7C-407D-B2AD-2B24209CCCA4}")]
     public class EzFlatFileDestination : EzAdapter
     {
         public EzFlatFileDestination(EzDataFlow dataFlow) : base(dataFlow)	{ }
@@ -1214,7 +1224,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("Microsoft.SqlServer.Dts.Pipeline.DataReaderSourceAdapter, Microsoft.SqlServer.ADONETSrc, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.DataReaderSourceAdapter, Microsoft.SqlServer.ADONETSrc, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzAdoNetSource : EzAdapter
     {
         public EzAdoNetSource(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1257,7 +1267,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("Microsoft.SqlServer.Dts.Pipeline.ADONETDestination, Microsoft.SqlServer.ADONETDest, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.ADONETDestination, Microsoft.SqlServer.ADONETDest, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzAdoNetDestination : EzAdapter
     {
         public EzAdoNetDestination(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1288,7 +1298,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{1ACA4459-ACE0-496F-814A-8611F9C27E23}")]
+    [CompID("{EC139FBC-694E-490B-8EA7-35690FB0F445}")]
     public class EzMultiCast : EzComponent
     {
         public static string CompID { get { return "{EC139FBC-694E-490B-8EA7-35690FB0F445}"; } }
@@ -1296,7 +1306,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public EzMultiCast(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }  
     }
 
-    [CompID("{2932025B-AB99-40F6-B5B8-783A73F80E24}")]
+    [CompID("{49928E82-9C4E-49F0-AABE-3812B82707EC}")]
     public class EzDerivedColumn : EzComponent
     {
         public EzDerivedColumn(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1349,7 +1359,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{07127A7C-164B-422A-AD1F-24BE39B4DB38}")]
+    [CompID("{5B1A3FF5-D366-4D75-AD1F-F19A36FCBEDB}")]
     public class EzSortTransform : EzComponent
     {
         public EzSortTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1442,7 +1452,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{8E61C8F6-C91D-43B6-97EB-3423C06571CC}")]
+    [CompID("{93FFEC66-CBC8-4C7F-9C6A-CB1C17A7567D}")]
     public class EzOleDbCommand : EzAdapter
     {
         public EzOleDbCommand(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1518,7 +1528,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         public IEnumerator GetEnumerator() { return MapIDs.GetEnumerator(); }
     }
 
-    [CompID("{27648839-180F-45E6-838D-AFF53DF682D2}")]
+    [CompID("{671046B0-AA63-4C9F-90E4-C06E0B710CE3}")]
     public class EzLookup : EzComponent
     {
         public EzLookup(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1533,6 +1543,12 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
                 ReleaseConnections();
             }
             catch { }
+        }
+
+        public bool TreatDuplicateKeysAsError 
+        {
+            get { return (bool)Meta.CustomPropertyCollection["TreatDuplicateKeysAsError"].Value; }
+            set { SetComponentProperty("TreatDuplicateKeysAsError", value); }
         }
 
         public CacheType CacheType {
@@ -1768,7 +1784,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{A236DD44-4409-433E-A1CE-283DA18F4E0F}")]
+    [CompID("{BF818E79-2C1C-410D-ADEA-B2D1A04FED01}")]
     public class EzCacheTransform : EzComponent
     {
         public EzCacheTransform(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1834,7 +1850,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{BD06A22E-BC69-4AF7-A69B-C44C2EF684BB}")]
+    [CompID("{62B1106C-7DB8-4EC8-ADD6-4C664DFFC54A}")]
     public class EzDataConvert : EzComponent
     {
         public EzDataConvert(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -1984,7 +2000,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{9ABE8DF3-0052-42DB-8B18-2089E1D1D1B7}")]
+    [CompID("{5B201335-B360-485C-BB93-75C34E09B3D3}")]
     public class EzAggregate : EzComponent
     {
         public EzAggregate(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2096,6 +2112,180 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.ScriptComponentHost, Microsoft.SqlServer.TxScript, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    public class EzScript : EzComponent
+    {
+        public const string VisualBasic = "VisualBasic";
+        public const string CSharp = "CSharp";
+
+        public class BinaryCodeIndexer
+        {
+            EzScript obj;
+            internal BinaryCodeIndexer(EzScript parent) { obj = parent; }
+            byte[] this[string asmName]
+            {
+                get { return obj.host.GetBinaryCode(asmName); }
+                set { obj.host.PutBinaryCode(asmName, value); }
+            }
+        }
+       
+        public EzScript(EzDataFlow dataFlow) : base(dataFlow) { }
+        public EzScript(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
+
+        private ScriptComponentHost host { get { return (Comp as IDTSManagedComponent100).InnerObject as ScriptComponentHost; } }
+
+        public VSTAComponentScriptingEngine ScriptingEngine
+        {
+            get
+            {
+                return host.CurrentScriptingEngine; 
+            }
+        }
+
+        public string ReadOnlyVars
+        {
+            get { return (string)Meta.CustomPropertyCollection["ReadOnlyVariables"].Value; }
+            set { SetComponentProperty("ReadOnlyVariables", value); }
+        }
+
+        public string ReadWriteVars
+        {
+            get { return (string)Meta.CustomPropertyCollection["ReadWriteVariables"].Value; }
+            set { SetComponentProperty("ReadWriteVariables", value); }
+        }
+
+        public string ScriptLanguage
+        {
+            get { return (string)Meta.CustomPropertyCollection["ScriptLanguage"].Value; }
+            set { SetComponentProperty("ScriptLanguage", value); }
+        }
+        
+        public string ProjectName
+        {
+            get { return (string)Meta.CustomPropertyCollection["VSTAProjectName"].Value; }
+            set { SetComponentProperty("VSTAProjectName", value); }
+        }
+
+        // 0 - filename, 1 - code, 2 - filename, 3 - code, etc.
+        public string[] SourceCode
+        {
+            get { return (string[])Meta.CustomPropertyCollection["SourceCode"].Value; }
+            set { SetComponentProperty("SourceCode", value); }
+        }
+
+        public void PutSourceFile(string fileName, string srcCode)
+        {
+            host.PutSourceCode(fileName, VSTAScriptProjectStorage.Encoding.UTF8.ToString(), srcCode);
+        }
+
+        private BinaryCodeIndexer m_binaryCode;
+        public BinaryCodeIndexer BinaryCode
+        {
+            get
+            {
+                if (m_binaryCode == null)
+                    m_binaryCode = new BinaryCodeIndexer(this);
+                return m_binaryCode;
+            }
+        }
+
+
+        public void InitNewScript()
+        {
+            InitNewScript(true, true);
+        }
+
+
+        public void InitNewScript(bool bAddMain, bool bAddWrappers)
+        {
+            try
+            {
+                if (!host.CreateNewProject(Guid.NewGuid().ToString("N"), bAddMain, bAddWrappers))
+                {
+                    throw new Exception("Failed to create new project");
+                }
+
+                if (!host.SaveScriptProject())
+                {
+                    throw new Exception("Failed to save project");
+                }
+            }
+            finally
+            {
+                ScriptingEngine.DisposeVstaHelper();
+            }
+        }
+
+        public bool AddCodeFile(string fileName, string srcCode)
+        {
+            try
+            {
+                if (!host.LoadScriptFromComponent())
+                {
+                    throw new Exception("Failed to load script information from the component");
+                }
+
+                if (ScriptingEngine.VstaHelper == null)
+                {
+                    throw new Exception("Vsta 3.0 is not installed properly");
+                }
+
+                if (!ScriptingEngine.LoadProjectFromStorage())
+                {
+                    throw new Exception("Failed to load project files from storage object");
+                }
+
+                if (!ScriptingEngine.VstaHelper.AddFileToProject(fileName, srcCode))
+                {
+                    throw new Exception("Failed to add code file to project");
+                }
+
+                if (!host.SaveScriptProject())
+                {
+                    throw new Exception("Failed to save project");
+                }
+
+                return true;
+            }
+            finally
+            {
+                ScriptingEngine.DisposeVstaHelper();
+            }
+        }
+         
+        public bool Build()
+        {
+            try
+            {
+                if (!host.LoadScriptFromComponent())
+                {
+                    throw new Exception("Failed to load script information from the component");
+                }
+
+                if (ScriptingEngine.VstaHelper == null)
+                {
+                    throw new Exception("Vsta 3.0 is not installed properly");
+                }
+
+                if (!ScriptingEngine.LoadProjectFromStorage())
+                {
+                    throw new Exception("Failed to load project files from storage object");
+                }
+
+                if (!host.SaveScriptProject())
+                {
+                    throw new Exception("Failed to save project");
+                }
+
+                return true;
+            }
+            finally
+            {
+                ScriptingEngine.DisposeVstaHelper();
+            }
+        }
+    }
+
     public enum XMLAccessMode
     {
         FileFromLocation = 0,
@@ -2103,7 +2293,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         DataFromVariable = 2
     }
 
-    [CompID("Microsoft.SqlServer.Dts.Pipeline.XmlSourceAdapter, Microsoft.SqlServer.XmlSrc, Version=10.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
+    [CompID("Microsoft.SqlServer.Dts.Pipeline.XmlSourceAdapter, Microsoft.SqlServer.XmlSrc, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91")]
     public class EzXMLSource : EzComponent
     {
         public EzXMLSource(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2147,7 +2337,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{A4B1E1C8-17F3-46C8-AAD0-34F0C6FE42DE}")]
+    [CompID("{8C084929-27D1-479F-9641-ABB7CDADF1AC}")]
     public class EzExcelSource : EzAdapter
     {
         public EzExcelSource(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2160,7 +2350,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{61CF9F97-4816-44CF-8CF5-1FE6DC0A30AD}")]
+    [CompID("{1F5D5712-2FBA-4CB9-A95A-86C1F336E1DA}")]
     public class EzExcelDest : EzAdapter
     {
         public EzExcelDest(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2340,14 +2530,14 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{D3FC84FA-748F-40B4-A967-F1574F917BE5}")]
+    [CompID("{36E0E750-2510-4776-AA6E-17EAE84FD63E}")]
     public class EzMerge: EzUnionAndMergeBase
     {
         public EzMerge(EzDataFlow dataFlow) : base(dataFlow) { }
         public EzMerge(EzDataFlow parent, IDTSComponentMetaData100 meta) : base(parent, meta) { }
     }
 
-    [CompID("{4D9F9B7C-84D9-4335-ADB0-2542A7E35422}")]
+    [CompID("{B594E9A8-4351-4939-891C-CFE1AB93E925}")]
     public class EzUnionAll : EzUnionAndMergeBase
     {
         public EzUnionAll(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2458,7 +2648,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{3AE878C6-0D6C-4F48-8128-40E00E9C1B7D}")]
+    [CompID("{7F88F654-4E20-4D14-84F4-AF9C925D3087}")]
     public class EzConditionalSplit : EzComponent
     {
         public EzConditionalSplit(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2542,7 +2732,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         Inner = 2
     }
 
-    [CompID("{A18A4D58-7C7A-4448-8B98-AE2CEFE81B4C}")]
+    [CompID("{14D43A4F-D7BD-489D-829E-6DE35750CFE4}")]
     public class EzMergeJoin : EzComponent
     {
         public EzMergeJoin(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2647,7 +2837,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         FixedAttribute = 4
     }
 
-    [CompID("{70909A92-ECE9-486D-B17E-30EDE908849E}")]
+    [CompID("{25BBB0C5-369B-4303-B3DF-D0DC741DEE58}")]
     public class EzSCD : EzAdapter
     {
         public EzSCD(EzDataFlow dataFlow) : base(dataFlow) { }
@@ -2719,7 +2909,7 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         }
     }
 
-    [CompID("{E4B61516-847B-4BDF-9CC6-1968A2D43E73}")]
+    [CompID("{F452EAF3-5EF0-43F1-8067-09DDF0BC6316}")]
     public class EzSqlDestination: EzAdapter
     {
         public EzSqlDestination(EzDataFlow dataFlow) : base(dataFlow) { }
