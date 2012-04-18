@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="dcbb848c-1143-4407-b624-3ea2d7612bf2" Name="Microsoft SQL Server Integration Services Delimited File Reader Sample" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft" UpgradeCode="b05f3b06-6b0d-4cc8-a9ec-eab6a46b658b">
+		<Package InstallerVersion="200" Compressed="yes" />
+
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+    <!-- These properties allow us to locate the install directory of SSIS, plus validate the existence of an installation. -->
+    <Property Id="SSIS64">
+      <RegistrySearch Type="directory" Id="SSIS64" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="yes"/>
+    </Property>
+    <Property Id="SSIS32">
+      <RegistrySearch Type="directory" Id="SSIS32" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="no"/>
+    </Property>
+
+    <!-- We need to find either or both a 32 or 64 bit install of SSIS. -->
+    <Condition Message="SQL Server Integration Services is not installed on this computer.  Please install SQL Server Integration Services before running this installer.">
+      <![CDATA[Installed OR SSIS64 OR SSIS32]]>
+    </Condition>
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="DelimitedFileReaderGac" Guid="2C91DC6F-3A2C-40C7-B884-3C3638C8E2E3">
+        <File Id="DelimitedFileReaderAssemblyGac" Name="$(var.DelimitedFileReader_SQL2012.TargetFileName)" Source="$(var.DelimitedFileReader_SQL2012.TargetPath)" Assembly=".net" KeyPath="yes"/>
+      </Component>
+
+      <!-- One section for each bitness -->
+      <Directory Name="SSIS64" Id="SSIS64">
+        <Directory Id="PipelineComponents64" Name="PipelineComponents">
+          <Component Id="DelimitedFileReader64" Guid="42B73663-3F56-435D-AB1D-9997D07AA0E9">
+            <File Id="DelimitedFileReaderAssembly64" Name="$(var.DelimitedFileReader_SQL2012.TargetFileName)" Source="$(var.DelimitedFileReader_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Name="SSIS32" Id="SSIS32">
+        <Directory Id="PipelineComponents32" Name="PipelineComponents">
+          <Component Id="DelimitedFileReader32" Guid="E75BEAE8-770D-4CDB-B76A-2BCF01444FC2">
+            <File Id="DelimitedFileReaderAssembly32" Name="$(var.DelimitedFileReader_SQL2012.TargetFileName)" Source="$(var.DelimitedFileReader_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Create a new ComponentGroup for each sample, referencing the components you've defined above. -->
+    <ComponentGroup Id="DelimitedFileReader">
+      <ComponentRef Id="DelimitedFileReaderGac"/>
+      <ComponentRef Id="DelimitedFileReader64"/>
+      <ComponentRef Id="DelimitedFileReader32"/>
+    </ComponentGroup>
+
+    <Feature Id="DelimitedFileReaderFeature" Title="Delimited File Reader" Description ="Installs Delimited File Reader component into your SQL Server installation." Level="1">
+      <ComponentGroupRef Id="DelimitedFileReader" />
+    </Feature>
+	</Product>
+</Wix>
