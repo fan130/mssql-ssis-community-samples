@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="aae3c28d-1ebe-4b70-8ea4-e21f00ac8b3a" Name="Microsoft SQL Server Integration Services RegEx Flat File Source Sample" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft" UpgradeCode="422e69a7-f3b2-4d9e-ba19-c3681a3ffc84">
+		<Package InstallerVersion="200" Compressed="yes" />
+
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+    <!-- These properties allow us to locate the install directory of SSIS, plus validate the existence of an installation. -->
+    <Property Id="SSIS64">
+      <RegistrySearch Type="directory" Id="SSIS64" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="yes"/>
+    </Property>
+    <Property Id="SSIS32">
+      <RegistrySearch Type="directory" Id="SSIS32" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="no"/>
+    </Property>
+
+    <!-- We need to find either or both a 32 or 64 bit install of SSIS. -->
+    <Condition Message="SQL Server Integration Services is not installed on this computer.  Please install SQL Server Integration Services before running this installer.">
+      <![CDATA[Installed OR SSIS64 OR SSIS32]]>
+    </Condition>
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="RegExFFSrcGac" Guid="C13294E4-1BBB-4BB0-8021-E4722EC0B9FE">
+        <File Id="RegExFFSrcAssemblyGac" Name="$(var.RegExFlatFileSource_SQL2012.TargetFileName)" Source="$(var.RegExFlatFileSource_SQL2012.TargetPath)" Assembly=".net" KeyPath="yes"/>
+      </Component>
+
+      <!-- One section for each bitness -->
+      <Directory Name="SSIS64" Id="SSIS64">
+        <Directory Id="PipelineComponents64" Name="PipelineComponents">
+          <Component Id="RegExFFSrc64" Guid="297046D5-1FEF-4ECA-B425-C654FA68A455">
+            <File Id="RegExFFSrcAssembly64" Name="$(var.RegExFlatFileSource_SQL2012.TargetFileName)" Source="$(var.RegExFlatFileSource_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Name="SSIS32" Id="SSIS32">
+        <Directory Id="PipelineComponents32" Name="PipelineComponents">
+          <Component Id="RegExFFSrc32" Guid="5CB6495E-0A4F-477D-B4D9-1AA498DF84ED">
+            <File Id="RegExFFSrcAssembly32" Name="$(var.RegExFlatFileSource_SQL2012.TargetFileName)" Source="$(var.RegExFlatFileSource_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Create a new ComponentGroup for each sample, referencing the components you've defined above. -->
+    <ComponentGroup Id="RegExFFSource">
+      <ComponentRef Id="RegExFFSrcGac"/>
+      <ComponentRef Id="RegExFFSrc64"/>
+      <ComponentRef Id="RegExFFSrc32"/>
+    </ComponentGroup>
+
+    <Feature Id="RegExFFSourceFeature" Title="RegEx Flat File Source" Description ="Installs RegEx Flat File Source component into your SQL Server installation." Level="1">
+      <ComponentGroupRef Id="RegExFFSource" />
+    </Feature>
+	</Product>
+</Wix>
