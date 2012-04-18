@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="7e704734-b457-457d-9439-e17118f1408f" Name="Microsoft SQL Server Integration Services WMI Source Sample" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft" UpgradeCode="89d762f8-fab6-4662-ba89-d03b3bc49298">
+		<Package InstallerVersion="200" Compressed="yes" />
+
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+    <!-- These properties allow us to locate the install directory of SSIS, plus validate the existence of an installation. -->
+    <Property Id="SSIS64">
+      <RegistrySearch Type="directory" Id="SSIS64" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="yes"/>
+    </Property>
+    <Property Id="SSIS32">
+      <RegistrySearch Type="directory" Id="SSIS32" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="no"/>
+    </Property>
+
+    <!-- We need to find either or both a 32 or 64 bit install of SSIS. -->
+    <Condition Message="SQL Server Integration Services is not installed on this computer.  Please install SQL Server Integration Services before running this installer.">
+      <![CDATA[Installed OR SSIS64 OR SSIS32]]>
+    </Condition>
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="WmiSourceGac" Guid="BD779D22-0A2A-48DE-8D20-EFD2B9966B4E">
+        <File Id="WmiSourceAssemblyGac" Name="$(var.WmiSrc_SQL2012.TargetFileName)" Source="$(var.WmiSrc_SQL2012.TargetPath)" Assembly=".net" KeyPath="yes"/>
+      </Component>
+
+      <!-- One section for each bitness -->
+      <Directory Name="SSIS64" Id="SSIS64">
+        <Directory Id="PipelineComponents64" Name="PipelineComponents">
+          <Component Id="WmiSource64" Guid="F88B7387-78E3-4B38-86EE-41346AF2B257">
+            <File Id="WmiSourceAssembly64" Name="$(var.WmiSrc_SQL2012.TargetFileName)" Source="$(var.WmiSrc_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Name="SSIS32" Id="SSIS32">
+        <Directory Id="PipelineComponents32" Name="PipelineComponents">
+          <Component Id="WmiSource32" Guid="1216A828-07C1-459A-A9D1-7558EA193E6F">
+            <File Id="WmiSourceAssembly32" Name="$(var.WmiSrc_SQL2012.TargetFileName)" Source="$(var.WmiSrc_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Create a new ComponentGroup for each sample, referencing the components you've defined above. -->
+    <ComponentGroup Id="WmiSource">
+      <ComponentRef Id="WmiSourceGac"/>
+      <ComponentRef Id="WmiSource64"/>
+      <ComponentRef Id="WmiSource32"/>
+    </ComponentGroup>
+
+    <Feature Id="WmiSourceFeature" Title="WMI Source" Description ="Installs WMI Source component into your SQL Server installation." Level="1">
+      <ComponentGroupRef Id="WmiSource" />
+    </Feature>
+	</Product>
+</Wix>
