@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="c9e45e21-15da-4e2e-8f76-09cb618cd680" Name="Microsoft SQL Server Integration Services Merge Destination Sample" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft" UpgradeCode="2c50b905-0269-4106-a71c-19e0caaf52ed">
+		<Package InstallerVersion="200" Compressed="yes" />
+
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+    <!-- These properties allow us to locate the install directory of SSIS, plus validate the existence of an installation. -->
+    <Property Id="SSIS64">
+      <RegistrySearch Type="directory" Id="SSIS64" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="yes"/>
+    </Property>
+    <Property Id="SSIS32">
+      <RegistrySearch Type="directory" Id="SSIS32" Root="HKLM" Key="SOFTWARE\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" Win64="no"/>
+    </Property>
+
+    <!-- We need to find either or both a 32 or 64 bit install of SSIS. -->
+    <Condition Message="SQL Server Integration Services is not installed on this computer.  Please install SQL Server Integration Services before running this installer.">
+      <![CDATA[Installed OR SSIS64 OR SSIS32]]>
+    </Condition>
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="MergeUI" Guid="87D03AA5-CB47-47C7-9ACA-99F8A249F01A">
+        <File Id="MergeUIGAC" Name="$(var.MergeUI_SQL2012.TargetFileName)" Source="$(var.MergeUI_SQL2012.TargetPath)" Assembly=".net" KeyPath="yes"/>
+      </Component>
+      <Component Id="TVPMergeDestGac" Guid="A1D63914-D03A-453B-BABD-4FE137F73695">
+        <File Id="MergeDestGac" Name="$(var.TVPMergeDest_SQL2012.TargetFileName)" Source="$(var.TVPMergeDest_SQL2012.TargetPath)" Assembly=".net" KeyPath="yes"/>
+      </Component>
+
+      <!-- One section for each bitness -->
+      <Directory Name="SSIS64" Id="SSIS64">
+        <Directory Id="PipelineComponents64" Name="PipelineComponents">
+          <Component Id="TVPMergeDest64" Guid="F0647B54-270D-4764-BBAF-D82213E4D5BC">
+            <File Id="TVPMergeDestAssembly64" Name="$(var.TVPMergeDest_SQL2012.TargetFileName)" Source="$(var.TVPMergeDest_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Name="SSIS32" Id="SSIS32">
+        <Directory Id="PipelineComponents32" Name="PipelineComponents">
+          <Component Id="TVPMergeDest32" Guid="4AE52283-A48C-4409-8EAE-23B215397A17">
+            <File Id="TVPMergeDestAssembly32" Name="$(var.TVPMergeDest_SQL2012.TargetFileName)" Source="$(var.TVPMergeDest_SQL2012.TargetPath)"/>
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Create a new ComponentGroup for each sample, referencing the components you've defined above. -->
+    <ComponentGroup Id="MergeDest">
+      <ComponentRef Id="TVPMergeDestGac"/>
+      <ComponentRef Id="MergeUI"/>
+      <ComponentRef Id="TVPMergeDest64"/>
+      <ComponentRef Id="TVPMergeDest32"/>
+    </ComponentGroup>
+
+    <Feature Id="MergeDestFeature" Title="Merge Destination" Description ="Installs Merge Destination component into your SQL Server installation." Level="1">
+      <ComponentGroupRef Id="MergeDest" />
+    </Feature>
+	</Product>
+</Wix>

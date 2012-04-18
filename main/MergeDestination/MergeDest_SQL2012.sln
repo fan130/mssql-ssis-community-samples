@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVPMergeDest_SQL2012", "TVPMergeDest\src\TVPMergeDest_SQL2012.csproj", "{2CBDAEE7-CBA8-4B77-B252-C2A4DFA9ED96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MergeUI_SQL2012", "MergeDestUI\src\MergeUI_SQL2012.csproj", "{B0296C06-BAB4-484B-8236-CF1DDA8333B2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2CBDAEE7-CBA8-4B77-B252-C2A4DFA9ED96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CBDAEE7-CBA8-4B77-B252-C2A4DFA9ED96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CBDAEE7-CBA8-4B77-B252-C2A4DFA9ED96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CBDAEE7-CBA8-4B77-B252-C2A4DFA9ED96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0296C06-BAB4-484B-8236-CF1DDA8333B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0296C06-BAB4-484B-8236-CF1DDA8333B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0296C06-BAB4-484B-8236-CF1DDA8333B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0296C06-BAB4-484B-8236-CF1DDA8333B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

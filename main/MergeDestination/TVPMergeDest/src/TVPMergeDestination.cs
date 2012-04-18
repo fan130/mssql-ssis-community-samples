@@ -1,5 +1,5 @@
 //****************************************************************************
-//      Copyright (c) 2008 Microsoft Corporation.
+//      Copyright (c) Microsoft Corporation.
 //
 // @File: MergeDestination.cs
 //
@@ -563,7 +563,7 @@ namespace Microsoft.SqlServer.Dts.Pipeline
 		// will be implemented in successive versions
 		public override void PerformUpgrade(int pipelineVersion)
 		{
-			base.PerformUpgrade(pipelineVersion);
+			// Do nothing
 		}
 
 		
