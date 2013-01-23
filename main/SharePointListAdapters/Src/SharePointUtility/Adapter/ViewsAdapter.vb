@@ -119,7 +119,7 @@ Namespace Adapter
         Private Sub AddCustomHeader(ByVal scope As System.ServiceModel.OperationContextScope)
 
             Dim reqProp = New System.ServiceModel.Channels.HttpRequestMessageProperty()
-            reqprop.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f");
+            reqProp.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f")
             System.ServiceModel.OperationContext.Current.OutgoingMessageProperties(System.ServiceModel.Channels.HttpRequestMessageProperty.Name) = reqProp
 
         End Sub
