@@ -59,6 +59,10 @@ gacutil /uf sharepointlistadapters
 gacutil /uf sharepointlistconnectionmanager
 gacutil /uf sharepointutility
 
+ECHO Building the SharePointUtility First
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild SharePointUtility\SharePointUtility.vbproj /t:Rebuild /p:Configuration=Release
+gacutil /i sharepointutility
+
 ECHO Build the MSIs for Deployment...
 FindReplaceText " Platform=""x64""" " Platform=""x86"""
 %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x86

@@ -97,6 +97,9 @@
       <HintPath>..\..\..\v90_References\Microsoft.SqlServer.PipelineHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SharePointUtility">
+      <HintPath>..\..\SharePointUtility.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -127,10 +130,6 @@
     <EmbeddedResource Include="Icons\SharePointDestination.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SharePointUtility\SharePointUtility.vbproj">
-      <Project>{A3117F6A-B873-4B05-9B4B-84FE9B0B6960}</Project>
-      <Name>SharePointUtility</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SharePointListConnection\SharePointListConnection2005.csproj">
       <Project>{3C83B6BA-5175-4CFC-9A37-65474741DBC9}</Project>
       <Name>SharePointListConnection2005</Name>
