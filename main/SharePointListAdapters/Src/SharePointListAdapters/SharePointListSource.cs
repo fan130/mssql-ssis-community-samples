@@ -310,7 +310,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             // Get the field names of the columns
             var fieldNames = (from col in ComponentMetaData.OutputCollection[0].OutputColumnCollection.Cast<IDTSOutputColumn>()
-                              select (string)col.CustomPropertyCollection[0].Value);
+                              select (string)col.CustomPropertyCollection[0].Value).ToArray();
 
 
             // Join them together and see if the sharepoints in the metadata are the same as those
@@ -417,10 +417,10 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
                 includeHidden = true;
 
             var accessibleColumns =
-                from c in columnList
+                (from c in columnList
                 where (c.IsHidden == includeHidden
                   || c.IsHidden == false) 
-                select c;
+                select c).ToArray();
 
             if (expandLookups)
             {
@@ -747,7 +747,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
             // Get the field names from the output collection
             var fieldNames = (from col in
                                   ComponentMetaData.OutputCollection[0].OutputColumnCollection.Cast<IDTSOutputColumn>()
-                              select (string)col.CustomPropertyCollection[0].Value);
+                              select (string)col.CustomPropertyCollection[0].Value).ToArray();
 
             // Load the data from sharepoint
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();

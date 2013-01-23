@@ -277,7 +277,7 @@ namespace Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters
 
             // Get the field names of the columns
             var fieldNames = (from col in ComponentMetaData.InputCollection[0].ExternalMetadataColumnCollection.Cast<IDTSExternalMetadataColumn>()
-                              select (string)col.CustomPropertyCollection["Id"].Value);
+                              select (string)col.CustomPropertyCollection["Id"].Value).ToArray();
 
             // Join them together and see if we get the full sharepoint column list. 
             if ((from spCol in accessibleColumns
