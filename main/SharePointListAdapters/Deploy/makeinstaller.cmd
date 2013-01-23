@@ -64,8 +64,9 @@ ECHO Building the SharePointUtility First
 gacutil /i sharepointutility
 
 ECHO Build the MSIs for Deployment...
+FindReplaceText " Platform=""x86""" " Platform=""x64"""
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x64
+
 FindReplaceText " Platform=""x64""" " Platform=""x86"""
 %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x86
 
-FindReplaceText " Platform=""x86""" " Platform=""x64"""
-%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild DeploySSISAdapters.sln /t:Rebuild /p:Configuration=Release /p:OutputName=SharePointListAdapterSetup_x64
