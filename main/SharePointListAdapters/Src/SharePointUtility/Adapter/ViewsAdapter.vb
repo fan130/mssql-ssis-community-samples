@@ -74,7 +74,7 @@ Namespace Adapter
             End If
 
             ' Send credentials and adjust the buffer sizes (SharePoint can send big packets of data)
-            binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Ntlm
+            binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Windows
             binding.MaxReceivedMessageSize = Int32.MaxValue
             binding.ReaderQuotas.MaxBytesPerRead = Int32.MaxValue
             binding.ReaderQuotas.MaxArrayLength = Int32.MaxValue
