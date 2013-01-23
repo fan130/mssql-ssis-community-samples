@@ -326,23 +326,29 @@ Public NotInheritable Class ListServiceUtility
 
             ' Get the list items to match against the file ref in order to get the ID needed for deleting the files
             Dim data = listsProxy.GetSharePointListItemData( _
-                "Documents", viewName, New String() {"FileRef", "ID"}, <Query/>, False, 300)
+                listName, viewId, New String() {"FileRef", "ID"}, <Query/>, False, 300)
 
             ' Join the files in the list with the fileref field from SharePoint.
             ' The fileref field is in the format [version]#[listname]/[filename], so we need to do a bit of work to get something that joins
             Dim batchItems = From fn In localFilePathList _
-                             Join sf In data On sf("FileRef").Substring(sf("FileRef").IndexOf("#") + 1) Equals listName + "/" + fn _
-                             Select _
-                                <Method Cmd="Delete">
-                                    <Field Name="ID"><%= sf("ID") %></Field>
-                                    <Field Name="FileRef"><%= targetUri.AbsoluteUri + fn %></Field>
-                                </Method>
+                            Join sf In data On sf("FileRef").Substring(sf("FileRef").LastIndexOf("/") + 1) Equals fn _
+                            Select _
+                            <Method Cmd="Delete">
+                                <Field Name="ID"><%= sf("ID") %></Field>
+                                <Field Name="FileRef"><%= targetUri.AbsoluteUri + fn %></Field>
+                            </Method>
             Dim batchXml = <batch><%= batchItems %></batch>
 
-            Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, 250)
+            ' Do an UpdateBatch ONLY if there are items to process
+            If batchItems.Elements.Count > 0 Then
+                Return listsProxy.ExecuteSharePointUpdateBatch(listName, viewId, batchXml, 250)
+            End If
         End Using
 
+        Return Nothing
+
     End Function
+
 
     ''' <summary>
     ''' Pass through method for legacy purposes which will use default credentials
