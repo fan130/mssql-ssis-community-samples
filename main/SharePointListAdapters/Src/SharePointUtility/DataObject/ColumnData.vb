@@ -18,6 +18,7 @@ Namespace DataObject
 
 
         Private Shared _columnLengthLookup As Dictionary(Of String, Short)
+        Public Shared lockColumnLengthDictionary As New Object
 
         Private Const MAX_LENGTH As Short = 4000
 
@@ -259,70 +260,73 @@ Namespace DataObject
         ''' <remarks></remarks>
         Public Shared Sub SetupMaxLengthLookup()
 
-            If (ColumnData._columnLengthLookup Is Nothing) Then
+            ' Make sure that someone else hasn't already created the dictionary (ie. we were waiting on the lock).
+            SyncLock lockColumnLengthDictionary
+                If (ColumnData._columnLengthLookup Is Nothing) Then
+                    ColumnData._columnLengthLookup = New Dictionary(Of String, Short)()
 
-                ColumnData._columnLengthLookup = New Dictionary(Of String, Short)()
+                    ' Documented Default Column documented:
+                    ' http://msdn.microsoft.com/en-us/library/microsoft.sharepoint.spfieldtype.aspx
+                    With ColumnData._columnLengthLookup
+                        ' Bits in SharePoint (short)
+                        .Add("AllDayEvent", 5)
+                        .Add("Attachments", 5)
+                        .Add("Boolean", 5)
+                        .Add("CrossProjectLink", 5)
+                        .Add("Recurrence", 5)
 
-                ' Documented Default Column documented:
-                ' http://msdn.microsoft.com/en-us/library/microsoft.sharepoint.spfieldtype.aspx
-                With ColumnData._columnLengthLookup
-                    ' Bits in SharePoint (short)
-                    .Add("AllDayEvent", 5)
-                    .Add("Attachments", 5)
-                    .Add("Boolean", 5)
-                    .Add("CrossProjectLink", 5)
-                    .Add("Recurrence", 5)
+                        ' Datetime
+                        .Add("DateTime", 20)
 
-                    ' Datetime
-                    .Add("DateTime", 20)
+                        ' dynamic? (estimate)
+                        .Add("Computed", 4000)
 
-                    ' dynamic? (estimate)
-                    .Add("Computed", 4000)
+                        ' Multi choice fields
+                        .Add("LookupMulti", 4000)
+                        .Add("UserMulti", 4000)
 
-                    ' Multi choice fields
-                    .Add("LookupMulti", 4000)
-                    .Add("UserMulti", 4000)
+                        ' NText
+                        .Add("GrdChoice", -1)
+                        .Add("MultiChoice", -1)
+                        .Add("MultiColumn", -1)
+                        .Add("Note", -1)
 
-                    ' NText
-                    .Add("GrdChoice", -1)
-                    .Add("MultiChoice", -1)
-                    .Add("MultiColumn", -1)
-                    .Add("Note", -1)
+                        ' Numeric - int, float, etc (estimate)
+                        .Add("Counter", 25)
+                        .Add("Integer", 25)
+                        .Add("Currency", 25)
+                        .Add("Number", 25)
 
-                    ' Numeric - int, float, etc (estimate)
-                    .Add("Counter", 25)
-                    .Add("Integer", 25)
-                    .Add("Currency", 25)
-                    .Add("Number", 25)
+                        ' Nvarchar(255) (estimate)
+                        .Add("Choice", 255)
+                        .Add("Text", 255)
+                        .Add("File", 256)
 
-                    ' Nvarchar(255) (estimate)
-                    .Add("Choice", 255)
-                    .Add("Text", 255)
-                    .Add("File", 256)
+                        ' nvarchar - large
+                        .Add("Threading", 4000)
+                        .Add("URL", 4000)
 
-                    ' nvarchar - large
-                    .Add("Threading", 4000)
-                    .Add("URL", 4000)
+                        ' Sql_variant in SharePoint (estimate)
+                        .Add("Calculated", 255)
 
-                    ' Sql_variant in SharePoint (estimate)
-                    .Add("Calculated", 255)
+                        ' Uniqueidentifier
+                        .Add("Guid", 50)
 
-                    ' Uniqueidentifier
-                    .Add("Guid", 50)
+                        ' Varbinary 
+                        .Add("ContentTypeId", 1024)
+                        .Add("ThreadIndex", 1024)
 
-                    ' Varbinary 
-                    .Add("ContentTypeId", 1024)
-                    .Add("ThreadIndex", 1024)
-
-                    ' Data might be text or int (need to check)
-                    .Add("Lookup", 255)
-                    .Add("ModStat", 10)
-                    .Add("PageSeparator", 50)
-                    .Add("User", 100)
-                    .Add("WorkflowEventType", 100)
-                    .Add("WorkflowStatus", 100)
-                End With
-            End If
+                        ' Data might be text or int (need to check)
+                        .Add("Lookup", 255)
+                        .Add("ModStat", 10)
+                        .Add("PageSeparator", 50)
+                        .Add("User", 100)
+                        .Add("WorkflowEventType", 100)
+                        .Add("WorkflowStatus", 100)
+                    End With
+                End If
+            End SyncLock
+            
         End Sub
 
         ''' <summary>
