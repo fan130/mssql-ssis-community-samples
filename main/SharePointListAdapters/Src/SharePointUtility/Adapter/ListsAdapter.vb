@@ -108,6 +108,22 @@ Namespace Adapter
                 TokenImpersonationLevel.Impersonation
             clientCredentials.Windows.ClientCredential = _credential
 
+            ' Add authentication support header
+            AddCustomHeader(New System.ServiceModel.OperationContextScope(_sharepointClient.InnerChannel))
+
+        End Sub
+
+        ''' <summary>
+        ''' Adds header property to state that forms based auth is accepted
+        ''' </summary>
+        ''' <param name="scope"></param>
+        ''' <remarks></remarks>
+        Private Sub AddCustomHeader(ByVal scope As System.ServiceModel.OperationContextScope)
+
+            Dim reqProp = New System.ServiceModel.Channels.HttpRequestMessageProperty()
+            reqprop.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f");
+            System.ServiceModel.OperationContext.Current.OutgoingMessageProperties(System.ServiceModel.Channels.HttpRequestMessageProperty.Name) = reqProp
+
         End Sub
 
         ''' <summary>
