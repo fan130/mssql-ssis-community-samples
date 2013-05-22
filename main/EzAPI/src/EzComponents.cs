@@ -2631,9 +2631,9 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
          * Returns the sequential order of evaluation, by counting one less than the number of outputs
          * that have been assigned FriendlyExpression properties.
          */
-        private uint GetNextOrder()
+        private int GetNextOrder()
         {
-            uint numberFriendlyExpressions = 0;
+            int numberFriendlyExpressions = 0;
             foreach(IDTSOutput100 output in m_obj.Meta.OutputCollection)
             {
                 foreach(IDTSCustomProperty100 prop in output.CustomPropertyCollection)
@@ -2686,13 +2686,13 @@ namespace Microsoft.SqlServer.SSIS.EzAPI
         /*
          * Indexes over outputs to get/set the order in which expressions are evaluated.
          */
-        private OutputIndexer<uint> m_order;
-        public OutputIndexer<uint> Order
+        private OutputIndexer<int> m_order;
+        public OutputIndexer<int> Order
         {
             get
             {
                 if (m_order == null)
-                    m_order = new OutputIndexer<uint>(this, "EvaluationOrder");
+                    m_order = new OutputIndexer<int>(this, "EvaluationOrder");
                 return m_order;
             }
         }
