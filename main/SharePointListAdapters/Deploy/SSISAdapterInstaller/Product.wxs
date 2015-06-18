@@ -2,269 +2,344 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
      xmlns:vs="http://schemas.microsoft.com/wix/VSExtension"
-	 xmlns:ui="http://schemas.microsoft.com/wix/"
-	 xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+   xmlns:ui="http://schemas.microsoft.com/wix/"
+   xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
  >
-	<Product Id="{53623FF2-309D-44FA-86B7-19728C3D8CE3}" Name="SSIS SharePoint List Adapters for SQL Server Integration Services" 
-			 Language="1033" Version="1.0.0.0" 
-			 Manufacturer="Microsoft" 
-			 UpgradeCode="{9FEFBC81-365E-44FE-9FE6-DF9BA7BBBEC3}">
-		<Package InstallerVersion="405" Compressed="yes" Platform="x64"
-				 InstallScope="perMachine" InstallPrivileges="elevated"  
-				 Comments="Sample SharePoint list adapters for SQL Server for SQL Server Integration Services"
-				 Keywords="SharePoint Adapter SSIS SQL Server for SQL Server Integration Services"
-				 Manufacturer="Microsoft" />
+  <Product Id="{53623FF2-309D-44FA-86B7-19728C3D8CE3}" Name="SSIS SharePoint List Adapters for SQL Server Integration Services" 
+       Language="1033" Version="1.0.0.0" 
+       Manufacturer="Microsoft" 
+       UpgradeCode="{9FEFBC81-365E-44FE-9FE6-DF9BA7BBBEC3}">
+    <Package InstallerVersion="405" Compressed="yes" Platform="x64"
+         InstallScope="perMachine" InstallPrivileges="elevated"  
+         Comments="Sample SharePoint list adapters for SQL Server for SQL Server Integration Services"
+         Keywords="SharePoint Adapter SSIS SQL Server for SQL Server Integration Services"
+         Manufacturer="Microsoft" />
 
-		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
-		<PropertyRef Id="NETFRAMEWORK35" />
-		<Condition Message="This application requires .NET Framework 3.5. Please install the .NET Framework then run this installer again.">
-			<![CDATA[Installed OR NETFRAMEWORK35]]>
-		</Condition>
+    <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+    <PropertyRef Id="NETFRAMEWORK35" />
+    <Condition Message="This application requires .NET Framework 3.5. Please install the .NET Framework then run this installer again.">
+      <![CDATA[Installed OR NETFRAMEWORK35]]>
+    </Condition>
 
-		<!-- Look for the SSIS Installation Folders for each edition and for each bitness we need -->		
-		<Property Id="INSTALLDIR32_2005">
-			<RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" 
-							Key="Software\Microsoft\MSDTS\Setup\DTSPath" />
-		</Property>
-		<Property Id="INSTALLDIR64_2005">
-			<RegistrySearch Id="FindDTSPath64_2005" Root="HKLM" Type="directory" Win64="yes" Name="SqlPath"
-							Key="Software\Microsoft\Microsoft SQL Server\90\DTS\Setup" />
-		</Property>
+    <!-- Look for the SSIS Installation Folders for each edition and for each bitness we need -->		
+    <Property Id="INSTALLDIR32_2005">
+      <RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" 
+              Key="Software\Microsoft\MSDTS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2005">
+      <RegistrySearch Id="FindDTSPath64_2005" Root="HKLM" Type="directory" Win64="yes" Name="SqlPath"
+              Key="Software\Microsoft\Microsoft SQL Server\90\DTS\Setup" />
+    </Property>
 
-		<Property Id="INSTALLDIR32_2008">
-			<RegistrySearch Id="FindDTSPath32_2008" Root="HKLM" Type="directory" Win64="no"
-							Key="Software\Microsoft\Microsoft SQL Server\100\SSIS\Setup\DTSPath" />
-		</Property>
-		<Property Id="INSTALLDIR64_2008">
-			<RegistrySearch Id="FindDTSPath64_2008" Root="HKLM" Type="directory" Win64="yes"
-							Key="Software\Microsoft\Microsoft SQL Server\100\SSIS\Setup\DTSPath" />
-		</Property>
+    <Property Id="INSTALLDIR32_2008">
+      <RegistrySearch Id="FindDTSPath32_2008" Root="HKLM" Type="directory" Win64="no"
+              Key="Software\Microsoft\Microsoft SQL Server\100\SSIS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2008">
+      <RegistrySearch Id="FindDTSPath64_2008" Root="HKLM" Type="directory" Win64="yes"
+              Key="Software\Microsoft\Microsoft SQL Server\100\SSIS\Setup\DTSPath" />
+    </Property>
 
-		<Property Id="INSTALLDIR32_2012">
-			<RegistrySearch Id="FindDTSPath32_2012" Root="HKLM" Type="directory" Win64="no"
-							Key="Software\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" />
-		</Property>
-		<Property Id="INSTALLDIR64_2012">
-			<RegistrySearch Id="FindDTSPath64_2012" Root="HKLM" Type="directory" Win64="yes"
-							Key="Software\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" />
-		</Property>
+    <Property Id="INSTALLDIR32_2012">
+      <RegistrySearch Id="FindDTSPath32_2012" Root="HKLM" Type="directory" Win64="no"
+              Key="Software\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2012">
+      <RegistrySearch Id="FindDTSPath64_2012" Root="HKLM" Type="directory" Win64="yes"
+              Key="Software\Microsoft\Microsoft SQL Server\110\SSIS\Setup\DTSPath" />
+    </Property>
 
-		<WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <Property Id="INSTALLDIR32_2014">
+      <RegistrySearch Id="FindDTSPath32_2014" Root="HKLM" Type="directory" Win64="no"
+              Key="Software\Microsoft\Microsoft SQL Server\120\SSIS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2014">
+      <RegistrySearch Id="FindDTSPath64_2014" Root="HKLM" Type="directory" Win64="yes"
+              Key="Software\Microsoft\Microsoft SQL Server\120\SSIS\Setup\DTSPath" />
+    </Property>
 
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<!-- Components to install: Gacced components, and version specific files -->
-			<Directory Id="Folder2005" Name="PFiles2005">
-				<Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
-					<File Id="SharePointUtilityDLLGACFile"
-							Name="SharePointUtility.dll"  KeyPath="yes"
-							Source="$(var.SharePointUtility.TargetPath)" Assembly=".net" />
-				</Component>
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-				<Directory Id="INSTALLDIR32_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
-					<Directory Id="ConnectionManager32_2005" Name="Connections">
-						<Component Id="ComponentConnectionManager32_2005" KeyPath="yes" Guid="{5F9BBD8F-6E5B-411E-A7B9-3DF2E534E038}">
-							<File Id="ConnectionManagerDLL32_2005"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters32_2005" Name="PipelineComponents">
-						<Component Id="PipelineComponents32_2005" KeyPath="yes" Guid="{A46DC92A-D3CC-405F-81B8-A4F8BD2C1A14}">
-							<File Id="PipelineComponentDLL32_2005"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Directory Id="INSTALLDIR64_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
-					<Directory Id="ConnectionManager64_2005" Name="Connections">
-						<Component Id="ComponentConnectionManager64_2005" KeyPath="yes" Guid="{2CC1CA11-83F3-4414-95CA-87BEE99239DB}">
-							<File Id="ConnectionManagerDLL64_2005"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters64_2005" Name="PipelineComponents">
-						<Component Id="PipelineComponents64_2005" KeyPath="yes" Guid="{AD852EE6-5FDF-4FAC-BABA-C6DE7DABB708}">
-							<File Id="PipelineComponentDLL64_2005"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Component Id="ConnectionManagerDLLGAC_2005"  Guid="{92790422-7A60-45A8-A02A-C48984DDD1BD}">
-					<File Id="ConnectionManagerDLLGACFile_2005"
-							Name="SharePointListConnectionManager.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
-				</Component>
-				<Component Id="PipelineComponentDLLGAC_2005"  Guid="{7D26E3F0-274E-41C1-991C-79BBF68A621F}">
-					<File Id="PipelineComponentDLLGACFile_2005"
-							Name="SharePointListAdapters.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
-				</Component>
-			</Directory>
-			<Directory Id="Folder2008" Name="PFiles2008">
-				<Directory Id="INSTALLDIR32_2008"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
-					<Directory Id="ConnectionManager32_2008" Name="Connections">
-						<Component Id="ComponentConnectionManager32_2008" KeyPath="yes" Guid="{17ED3E26-4BE7-4E0E-AB2A-F70855870645}">
-							<File Id="ConnectionManagerDLL32_2008"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters32_2008" Name="PipelineComponents">
-						<Component Id="PipelineComponents32_2008" KeyPath="yes" Guid="{6A93A912-730E-4139-83E6-403A5D33E9D7}">
-							<File Id="PipelineComponentDLL32_2008"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Directory Id="INSTALLDIR64_2008"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
-					<Directory Id="ConnectionManager64_2008" Name="Connections">
-						<Component Id="ComponentConnectionManager64_2008" KeyPath="yes" Guid="{BFB1DC29-F0A6-4D21-AB66-596008A25AB0}">
-							<File Id="ConnectionManagerDLL64_2008"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters64_2008" Name="PipelineComponents">
-						<Component Id="PipelineComponents64_2008" KeyPath="yes" Guid="{4DBD4D92-FA00-4AAA-9CBA-1EB9E4229A36}">
-							<File Id="PipelineComponentDLL64_2008"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Component Id="ConnectionManagerDLLGAC_2008"  Guid="{F9E1033D-A005-4D81-A6AB-7047A64CE0B9}">
-					<File Id="ConnectionManagerDLLGACFile_2008"
-							Name="SharePointListConnectionManager.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
-				</Component>
-				<Component Id="PipelineComponentDLLGAC_2008"  Guid="{BD8E502F-C2DF-499E-9AB9-C92566579297}">
-					<File Id="PipelineComponentDLLGACFile_2008"
-							Name="SharePointListAdapters.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
-				</Component>
-			</Directory>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Components to install: Gacced components, and version specific files -->
+      <Directory Id="Folder2005" Name="PFiles2005">
+        <Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
+          <File Id="SharePointUtilityDLLGACFile"
+              Name="SharePointUtility.dll"  KeyPath="yes"
+              Source="$(var.SharePointUtility.TargetPath)" Assembly=".net" />
+        </Component>
 
-			<Directory Id="Folder2012" Name="PFiles2012">
-				<Directory Id="INSTALLDIR32_2012"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
-					<Directory Id="ConnectionManager32_2012" Name="Connections">
-						<Component Id="ComponentConnectionManager32_2012" KeyPath="yes" Guid="{70409D8F-B61D-48C3-98C0-32B827C65784}">
-							<File Id="ConnectionManagerDLL32_2012"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters32_2012" Name="PipelineComponents">
-						<Component Id="PipelineComponents32_2012" KeyPath="yes" Guid="{6C2C2E47-39CF-46A7-B356-2D63A785A9D9}">
-							<File Id="PipelineComponentDLL32_2012"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Directory Id="INSTALLDIR64_2012"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
-					<Directory Id="ConnectionManager64_2012" Name="Connections">
-						<Component Id="ComponentConnectionManager64_2012" KeyPath="yes" Guid="{C82E6200-DE71-445D-92D7-93F54B503043}">
-							<File Id="ConnectionManagerDLL64_2012"
-									Name="SharePointListConnectionManager.dll"
-  		 							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll"  />
-						</Component>
-					</Directory>
-					<Directory Id="DataAdapters64_2012" Name="PipelineComponents">
-						<Component Id="PipelineComponents64_2012" KeyPath="yes" Guid="{59822FC5-EE28-43B7-99C6-0025F3723B65}">
-							<File Id="PipelineComponentDLL64_2012"
-									Name="SharePointListAdapters.dll"
-  		 							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
-						</Component>
-					</Directory>
-				</Directory>
-				<Component Id="ConnectionManagerDLLGAC_2012"  Guid="{4E3EF1E5-A0AB-4C53-AAAC-CD1A39A49444}">
-					<File Id="ConnectionManagerDLLGACFile_2012"
-							Name="SharePointListConnectionManager.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
-				</Component>
-				<Component Id="PipelineComponentDLLGAC_2012"  Guid="{0EE8932D-F248-4C19-AAFF-635AAA6D8EF0}">
-					<File Id="PipelineComponentDLLGACFile_2012"
-							Name="SharePointListAdapters.dll" KeyPath="yes"
-							Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
-				</Component>
-			</Directory>
-			<Component Id="RestartSSISService" Guid="{36568AC6-C8AE-4CAD-836F-AE9C7722C07A}">
-				<ServiceControl Id="SSISServiceStop" Name="MsDtsServer" Stop="both" />
-			</Component>
-		</Directory>
+        <Directory Id="INSTALLDIR32_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2005" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2005" KeyPath="yes" Guid="{5F9BBD8F-6E5B-411E-A7B9-3DF2E534E038}">
+              <File Id="ConnectionManagerDLL32_2005"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2005" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2005" KeyPath="yes" Guid="{A46DC92A-D3CC-405F-81B8-A4F8BD2C1A14}">
+              <File Id="PipelineComponentDLL32_2005"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2005" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2005" KeyPath="yes" Guid="{2CC1CA11-83F3-4414-95CA-87BEE99239DB}">
+              <File Id="ConnectionManagerDLL64_2005"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2005" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2005" KeyPath="yes" Guid="{AD852EE6-5FDF-4FAC-BABA-C6DE7DABB708}">
+              <File Id="PipelineComponentDLL64_2005"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2005"  Guid="{92790422-7A60-45A8-A02A-C48984DDD1BD}">
+          <File Id="ConnectionManagerDLLGACFile_2005"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2005"  Guid="{7D26E3F0-274E-41C1-991C-79BBF68A621F}">
+          <File Id="PipelineComponentDLLGACFile_2005"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2005.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
+      </Directory>
+      <Directory Id="Folder2008" Name="PFiles2008">
+        <Directory Id="INSTALLDIR32_2008"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2008" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2008" KeyPath="yes" Guid="{17ED3E26-4BE7-4E0E-AB2A-F70855870645}">
+              <File Id="ConnectionManagerDLL32_2008"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2008" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2008" KeyPath="yes" Guid="{6A93A912-730E-4139-83E6-403A5D33E9D7}">
+              <File Id="PipelineComponentDLL32_2008"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2008"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2008" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2008" KeyPath="yes" Guid="{BFB1DC29-F0A6-4D21-AB66-596008A25AB0}">
+              <File Id="ConnectionManagerDLL64_2008"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2008" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2008" KeyPath="yes" Guid="{4DBD4D92-FA00-4AAA-9CBA-1EB9E4229A36}">
+              <File Id="PipelineComponentDLL64_2008"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2008"  Guid="{F9E1033D-A005-4D81-A6AB-7047A64CE0B9}">
+          <File Id="ConnectionManagerDLLGACFile_2008"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2008"  Guid="{BD8E502F-C2DF-499E-9AB9-C92566579297}">
+          <File Id="PipelineComponentDLLGACFile_2008"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2008.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
+      </Directory>
 
-		<!-- Features for the feature picker -->
-		<Feature Id="SharePointAdapters" Title="SharePoint SSIS SQL Server Adapters" Level="1" Display="expand" 
-				 TypicalDefault="install">
-			<ComponentRef Id="RestartSSISService" />
-			<ComponentRef Id="SharePointUtilityDLLGAC" />
-			<Feature Id="Sql2005" Title="SSIS 2005 Components" Level="1" Display="expand">
-				<!-- Hide SQL 2005 if paths are not found -->
-				<Condition Level="0"><![CDATA[INSTALLDIR32_2005 = "" AND INSTALLDIR64_2005  = ""]]></Condition>
-				<ComponentRef Id="ConnectionManagerDLLGAC_2005" />
-				<ComponentRef Id="PipelineComponentDLLGAC_2005" />
-				<Feature Id="Sql2005x86" Title="x86 Components (for designer and runtime)" Level="1" 
-					 ConfigurableDirectory="INSTALLDIR32_2005">
-					<Condition Level="0"><![CDATA[INSTALLDIR32_2005 = ""]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager32_2005" />
-					<ComponentRef Id="PipelineComponents32_2005" />
-				</Feature>
-				<Feature Id="Sql2005x64" Title="x64 Components (for runtime)" Level="1" 
-					 ConfigurableDirectory="INSTALLDIR64_2005">
-					<!-- Hide 64 bit option if not 64 bit -->
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2005 = "" OR INSTALLDIR64_2005 = INSTALLDIR32_2005]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager64_2005" />
-					<ComponentRef Id="PipelineComponents64_2005" />
-				</Feature>
-			</Feature>
+      <Directory Id="Folder2012" Name="PFiles2012">
+        <Directory Id="INSTALLDIR32_2012"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2012" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2012" KeyPath="yes" Guid="{70409D8F-B61D-48C3-98C0-32B827C65784}">
+              <File Id="ConnectionManagerDLL32_2012"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2012" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2012" KeyPath="yes" Guid="{6C2C2E47-39CF-46A7-B356-2D63A785A9D9}">
+              <File Id="PipelineComponentDLL32_2012"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2012"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2012" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2012" KeyPath="yes" Guid="{C82E6200-DE71-445D-92D7-93F54B503043}">
+              <File Id="ConnectionManagerDLL64_2012"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2012" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2012" KeyPath="yes" Guid="{59822FC5-EE28-43B7-99C6-0025F3723B65}">
+              <File Id="PipelineComponentDLL64_2012"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2012"  Guid="{4E3EF1E5-A0AB-4C53-AAAC-CD1A39A49444}">
+          <File Id="ConnectionManagerDLLGACFile_2012"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2012"  Guid="{0EE8932D-F248-4C19-AAFF-635AAA6D8EF0}">
+          <File Id="PipelineComponentDLLGACFile_2012"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
+      </Directory>
 
-			<Feature Id="Sql2008" Title="SSIS 2008 / 2008 R2 Components" Level="1" Display="expand" >
-				<Condition Level="0"><![CDATA[INSTALLDIR32_2008 = "" AND INSTALLDIR64_2008  = ""]]></Condition>
-				<ComponentRef Id="ConnectionManagerDLLGAC_2008" />
-				<ComponentRef Id="PipelineComponentDLLGAC_2008" />
-				<Feature Id="Sql2008x86" Title="x86 Components (for designer and runtime)" Level="1" 
-					 ConfigurableDirectory="INSTALLDIR32_2008">
-					<!-- Hide SQL 2008 if paths are not found -->
-					<Condition Level="0"><![CDATA[INSTALLDIR32_2008 = ""]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager32_2008" />
-					<ComponentRef Id="PipelineComponents32_2008" />
-				</Feature>
-				<Feature Id="Sql2008x64" Title="x64 Components (for runtime)" Level="1"  
-					 ConfigurableDirectory="INSTALLDIR64_2008">
-					<!-- Hide 64 bit option if not 64 bit -->
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2008 = "" OR INSTALLDIR64_2008 = INSTALLDIR32_2008]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager64_2008" />
-					<ComponentRef Id="PipelineComponents64_2008" />
-				</Feature>
-			</Feature>
+      <Directory Id="Folder2014" Name="PFiles2014">
+        <Directory Id="INSTALLDIR32_2014"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2014" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2014" KeyPath="yes" Guid="{D325AEBB-0E92-4BD5-A608-BF02724CB2F4}">
+              <File Id="ConnectionManagerDLL32_2014"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2014" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2014" KeyPath="yes" Guid="{B664F220-D394-4C88-8A9A-50ACB858EC2D}">
+              <File Id="PipelineComponentDLL32_2014"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2014"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2014" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2014" KeyPath="yes" Guid="{AFF08860-A0E6-4965-9C1C-32713CF4F701}">
+              <File Id="ConnectionManagerDLL64_2014"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2014" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2014" KeyPath="yes" Guid="{E9F110F7-EA1F-4256-A17C-8191BEB06793}">
+              <File Id="PipelineComponentDLL64_2014"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2014"  Guid="{BE82F81F-09C9-44DC-A19C-2BE87422879F}">
+          <File Id="ConnectionManagerDLLGACFile_2014"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2014"  Guid="{75D33A72-0751-4569-A73F-DE9B4BE90CA8}">
+          <File Id="PipelineComponentDLLGACFile_2014"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
+      </Directory>
 
-			<Feature Id="Sql2012" Title="SSIS Denali Components" Level="1" Display="expand" >
-				<Condition Level="0"><![CDATA[INSTALLDIR32_2012 = "" AND INSTALLDIR64_2012  = ""]]></Condition>
-				<ComponentRef Id="ConnectionManagerDLLGAC_2012" />
-				<ComponentRef Id="PipelineComponentDLLGAC_2012" />
-				<Feature Id="Sql2012x86" Title="x86 Components (for designer and runtime)" Level="1"
-					 ConfigurableDirectory="INSTALLDIR32_2012">
-					<!-- Hide SQL 2012 if paths are not found -->
-					<Condition Level="0"><![CDATA[INSTALLDIR32_2012 = ""]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager32_2012" />
-					<ComponentRef Id="PipelineComponents32_2012" />
-				</Feature>
-				<Feature Id="Sql2012x64" Title="x64 Components (for runtime)" Level="1"
-					 ConfigurableDirectory="INSTALLDIR64_2012">
-					<!-- Hide 64 bit option if not 64 bit -->
-					<Condition Level="0"><![CDATA[INSTALLDIR64_2012 = "" OR INSTALLDIR64_2012 = INSTALLDIR32_2012]]></Condition>
-					<ComponentRef Id="ComponentConnectionManager64_2012" />
-					<ComponentRef Id="PipelineComponents64_2012" />
-				</Feature>
-			</Feature>
-		</Feature>
+      <Component Id="RestartSSISService" Guid="{36568AC6-C8AE-4CAD-836F-AE9C7722C07A}">
+        <ServiceControl Id="SSISServiceStop" Name="MsDtsServer" Stop="both" />
+      </Component>
+    </Directory>
 
-		<!-- Reference to the Internal WiX UI Template set which includes the Feature Picker -->
-		<UIRef Id="WixUI_Mondo" />
+    <!-- Features for the feature picker -->
+    <Feature Id="SharePointAdapters" Title="SharePoint SSIS SQL Server Adapters" Level="1" Display="expand" 
+         TypicalDefault="install">
+      <ComponentRef Id="RestartSSISService" />
+      <ComponentRef Id="SharePointUtilityDLLGAC" />
+      <Feature Id="Sql2005" Title="SSIS 2005 Components" Level="1" Display="expand">
+        <!-- Hide SQL 2005 if paths are not found -->
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2005 = "" AND INSTALLDIR64_2005  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2005" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2005" />
+        <Feature Id="Sql2005x86" Title="x86 Components (for designer and runtime)" Level="1" 
+           ConfigurableDirectory="INSTALLDIR32_2005">
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2005 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2005" />
+          <ComponentRef Id="PipelineComponents32_2005" />
+        </Feature>
+        <Feature Id="Sql2005x64" Title="x64 Components (for runtime)" Level="1" 
+           ConfigurableDirectory="INSTALLDIR64_2005">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2005 = "" OR INSTALLDIR64_2005 = INSTALLDIR32_2005]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2005" />
+          <ComponentRef Id="PipelineComponents64_2005" />
+        </Feature>
+      </Feature>
 
-	</Product>
+      <Feature Id="Sql2008" Title="SSIS 2008 / 2008 R2 Components" Level="1" Display="expand" >
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2008 = "" AND INSTALLDIR64_2008  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2008" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2008" />
+        <Feature Id="Sql2008x86" Title="x86 Components (for designer and runtime)" Level="1" 
+           ConfigurableDirectory="INSTALLDIR32_2008">
+          <!-- Hide SQL 2008 if paths are not found -->
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2008 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2008" />
+          <ComponentRef Id="PipelineComponents32_2008" />
+        </Feature>
+        <Feature Id="Sql2008x64" Title="x64 Components (for runtime)" Level="1"  
+           ConfigurableDirectory="INSTALLDIR64_2008">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2008 = "" OR INSTALLDIR64_2008 = INSTALLDIR32_2008]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2008" />
+          <ComponentRef Id="PipelineComponents64_2008" />
+        </Feature>
+      </Feature>
+
+      <Feature Id="Sql2012" Title="SSIS 2012 Components" Level="1" Display="expand" >
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2012 = "" AND INSTALLDIR64_2012  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2012" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2012" />
+        <Feature Id="Sql2012x86" Title="x86 Components (for designer and runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR32_2012">
+          <!-- Hide SQL 2012 if paths are not found -->
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2012 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2012" />
+          <ComponentRef Id="PipelineComponents32_2012" />
+        </Feature>
+        <Feature Id="Sql2012x64" Title="x64 Components (for runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR64_2012">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2012 = "" OR INSTALLDIR64_2012 = INSTALLDIR32_2012]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2012" />
+          <ComponentRef Id="PipelineComponents64_2012" />
+        </Feature>
+      </Feature>
+
+      <Feature Id="Sql2014" Title="SSIS 2014 Components" Level="1" Display="expand" >
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2014 = "" AND INSTALLDIR64_2014  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2014" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2014" />
+        <Feature Id="Sql2014x86" Title="x86 Components (for designer and runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR32_2014">
+          <!-- Hide SQL 2014 if paths are not found -->
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2014 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2014" />
+          <ComponentRef Id="PipelineComponents32_2014" />
+        </Feature>
+        <Feature Id="Sql2014x64" Title="x64 Components (for runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR64_2014">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2014 = "" OR INSTALLDIR64_2014 = INSTALLDIR32_2014]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2014" />
+          <ComponentRef Id="PipelineComponents64_2014" />
+        </Feature>
+      </Feature>
+    </Feature>
+
+    <!-- Reference to the Internal WiX UI Template set which includes the Feature Picker -->
+    <UIRef Id="WixUI_Mondo" />
+
+  </Product>
 </Wix>
