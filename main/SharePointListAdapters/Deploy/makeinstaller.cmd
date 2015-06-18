@@ -6,6 +6,7 @@ attrib -r /s
 xcopy ..\Src\*.cs sql2005 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs sql2008 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2012 /s /y /EXCLUDE:excludefilelist.txt
+xcopy ..\Src\*.cs Sql2014 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\SharePointUtility\*.vb SharePointUtility /s /y /EXCLUDE:excludefilelist.txt
 del *.pdb /s
 del *.dll /s
@@ -54,6 +55,20 @@ FindReplaceText "IDTSRuntimeConnection90" "IDTSRuntimeConnection100"
 FindReplaceText "1.0.0.0" "1.2012.0.0" 
 cd..
 
+cd sql2014
+copy ..\FindReplaceText.exe /Y
+FindReplaceText "IDTSInputColumnCollection90" "IDTSInputColumnCollection100"
+FindReplaceText "IDTSExternalMetadataColumn90" "IDTSExternalMetadataColumn100" 
+FindReplaceText "IDTSInput90" "IDTSInput100" 
+FindReplaceText "IDTSInputColumn90" "IDTSInputColumn100" 
+FindReplaceText "IDTSCustomProperty90" "IDTSCustomProperty100" 
+FindReplaceText "IDTSVirtualInputColumn90" "IDTSVirtualInputColumn100" 
+FindReplaceText "IDTSOutput90" "IDTSOutput100" 
+FindReplaceText "IDTSOutputColumn90" "IDTSOutputColumn100" 
+FindReplaceText "IDTSRuntimeConnection90" "IDTSRuntimeConnection100" 
+FindReplaceText "1.0.0.0" "1.2014.0.0" 
+cd..
+
 ECHO Clear the GAC of any components which may interfere with the deployment
 gacutil /uf sharepointlistadapters
 gacutil /uf sharepointlistconnectionmanager
@@ -61,7 +76,7 @@ gacutil /uf sharepointutility
 
 ECHO Building the SharePointUtility First
 %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild SharePointUtility\SharePointUtility.vbproj /t:Rebuild /p:Configuration=Release
-gacutil /i sharepointutility
+gacutil /i SharePointUtility\bin\Release\sharepointutility.dll
 
 ECHO Build the MSIs for Deployment...
 FindReplaceText " Platform=""x86""" " Platform=""x64"""
