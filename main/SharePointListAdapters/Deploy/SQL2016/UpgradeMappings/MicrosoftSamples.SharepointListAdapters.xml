@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Extensions xmlns="http://www.microsoft.com/SqlServer/Dts/Extensions.xsd">
+  <PipelineComponents>
+    <PipelineComponent Identifier="MicrosoftSamples.SharePointListSource" Model=".NET">
+      <CreationName>Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</CreationName>
+      <TypeConverter name="IsRecursive">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+      <TypeConverter name="IncludeFolders">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+	  <TypeConverter name="IncludeHiddenColumns">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+      <TypeConverter name="DecodeLookupColumns">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+	  <TypeConverter name="UseConnectionManager">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+    </PipelineComponent>
+	<PipelineComponent Identifier="MicrosoftSamples.SharePointListDestination" Model=".NET">
+      <CreationName>Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</CreationName>
+      <TypeConverter name="BatchType">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.BatchType, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+      <TypeConverter name="UseConnectionManager">Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.Enums.TrueFalseValue, SharePointListAdapters, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</TypeConverter>
+    </PipelineComponent>
+  </PipelineComponents>
+  <ConnectionManagers>
+    <ConnectionManager Identifier="SPCRED" Model=".NET">
+      <CreationName>Microsoft.Samples.SqlServer.SSIS.SharePointListConnectionManager.CredentialConnectionManager, SharePointListConnectionManager, Version=1.2016.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47</CreationName>
+    </ConnectionManager>
+  </ConnectionManagers>
+</Extensions>

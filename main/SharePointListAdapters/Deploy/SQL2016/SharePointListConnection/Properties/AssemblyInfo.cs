@@ -5,14 +5,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SharePointListAdapters")]
-[assembly: AssemblyDescription("SharePoint list source and destination adapters for use with SQL Server Integration Services")]
+[assembly: AssemblyTitle("SharePointListConnections")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("SharePointListAdapters")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2008")]
+[assembly: AssemblyCompany("MS")]
+[assembly: AssemblyProduct("SharePointListConnections")]
+[assembly: AssemblyCopyright("Copyright © MS 2016")]
 [assembly: AssemblyTrademark("")]
-[assembly: System.CLSCompliant(true)]
+[assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("833cc485-1943-401a-9194-d4696b86a2cd")]
+// [assembly: Guid("25ec0b24-d376-4fe9-ae65-68ac4e4b7991")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.2008.0.0")]
-[assembly: AssemblyFileVersion("1.2008.0.0")]
+[assembly: AssemblyVersion("1.2016.0.0")]
+[assembly: AssemblyFileVersion("1.2016.0.0")]

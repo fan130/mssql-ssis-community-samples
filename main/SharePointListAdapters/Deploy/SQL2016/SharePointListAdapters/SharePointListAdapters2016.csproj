@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{FCE864A7-7B0C-48A5-9F79-F92AF2402082}</ProjectGuid>
+    <ProjectGuid>{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters</RootNamespace>
@@ -45,7 +45,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>\Program Files\Microsoft SQL Server\100\DTS\PipelineComponents</OutputPath>
+    <OutputPath>\Program Files\Microsoft SQL Server\130\DTS\PipelineComponents</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -66,32 +66,32 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.DataTransformationServices.Design, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.DataTransformationServices.Design, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.DataTransformationServices.Design.DLL</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.DataTransformationServices.Design.DLL</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.SqlServer.Dts.Design, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.SqlServer.Dts.Design, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.SqlServer.Dts.Design.dll</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.SqlServer.Dts.Design.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.SQLServer.DTSPipelineWrap, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.SQLServer.DTSPipelineWrap, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.SQLServer.DTSPipelineWrap.dll</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.SQLServer.DTSPipelineWrap.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.SqlServer.DTSRuntimeWrap, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=x86">
+    <Reference Include="Microsoft.SqlServer.DTSRuntimeWrap, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.SqlServer.DTSRuntimeWrap.dll</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.SqlServer.DTSRuntimeWrap.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.SqlServer.ManagedDTS, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.SqlServer.ManagedDTS, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.SqlServer.ManagedDTS.dll</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.SqlServer.ManagedDTS.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.SQLServer.PipelineHost, Version=11.2012.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.SQLServer.PipelineHost, Version=13.2016.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\v110_References\Microsoft.SQLServer.PipelineHost.dll</HintPath>
+      <HintPath>..\..\..\v130_References\Microsoft.SQLServer.PipelineHost.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SharePointUtility">
@@ -127,9 +127,9 @@
     <EmbeddedResource Include="Icons\SharePointDestination.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SharePointListConnection\SharePointListConnection2012.csproj">
-      <Project>{2EF043E5-D843-4085-9801-5269AED387C8}</Project>
-      <Name>SharePointListConnection2012</Name>
+    <ProjectReference Include="..\SharePointListConnection\SharePointListConnection2016.csproj">
+      <Project>{598FF3C9-2426-4E5F-B235-CB7A9AF68857}</Project>
+      <Name>SharePointListConnection2016</Name>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

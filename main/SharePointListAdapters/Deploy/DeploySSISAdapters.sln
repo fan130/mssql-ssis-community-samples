@@ -53,9 +53,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListAdapters2014"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListConnection2014", "SQL2014\SharePointListConnection\SharePointListConnection2014.csproj", "{AE1E5152-5329-4A97-9E63-45989836C34E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL 2016", "SQL 2016", "{BCCFB0FC-826C-4D23-AD06-3A3B7629E7BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListAdapters2016", "SQL2016\SharePointListAdapters\SharePointListAdapters2016.csproj", "{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListConnection2016", "SQL2016\SharePointListConnection\SharePointListConnection2016.csproj", "{598FF3C9-2426-4E5F-B235-CB7A9AF68857}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 12
+		SccNumberOfProjects = 14
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs02
 		SccLocalPath0 = .
@@ -101,6 +107,14 @@ Global
 		SccProjectTopLevelParentUniqueName11 = DeploySSISAdapters.sln
 		SccProjectName11 = SQL2014/SharePointListConnection
 		SccLocalPath11 = SQL2014\\SharePointListConnection
+		SccProjectUniqueName12 = SQL2016\\SharePointListAdapters\\SharePointListAdapters2016.csproj
+		SccProjectTopLevelParentUniqueName12 = DeploySSISAdapters.sln
+		SccProjectName12 = SQL2016/SharePointListAdapters
+		SccLocalPath12 = SQL2016\\SharePointListAdapters
+		SccProjectUniqueName13 = SQL2016\\SharePointListConnection\\SharePointListConnection2016.csproj
+		SccProjectTopLevelParentUniqueName13 = DeploySSISAdapters.sln
+		SccProjectName13 = SQL2016/SharePointListConnection
+		SccLocalPath13 = SQL2016\\SharePointListConnection
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -218,6 +232,26 @@ Global
 		{AE1E5152-5329-4A97-9E63-45989836C34E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AE1E5152-5329-4A97-9E63-45989836C34E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AE1E5152-5329-4A97-9E63-45989836C34E}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8}.Release|x86.ActiveCfg = Release|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Any CPU.Build.0 = Release|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -233,5 +267,7 @@ Global
 		{04DCD2ED-D340-4037-A70F-0950A91887F5} = {CEBFC1BD-A6BB-4C30-855B-1368B8DC0B03}
 		{1B854E8E-199E-4405-A16F-C8B5515134F7} = {6F64A38E-5DA6-4F39-A7AB-3B912D33AD04}
 		{AE1E5152-5329-4A97-9E63-45989836C34E} = {6F64A38E-5DA6-4F39-A7AB-3B912D33AD04}
+		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8} = {BCCFB0FC-826C-4D23-AD06-3A3B7629E7BA}
+		{598FF3C9-2426-4E5F-B235-CB7A9AF68857} = {BCCFB0FC-826C-4D23-AD06-3A3B7629E7BA}
 	EndGlobalSection
 EndGlobal
