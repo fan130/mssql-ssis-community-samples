@@ -9,7 +9,7 @@
        Language="1033" Version="1.0.0.0" 
        Manufacturer="Microsoft" 
        UpgradeCode="{9FEFBC81-365E-44FE-9FE6-DF9BA7BBBEC3}">
-    <Package InstallerVersion="405" Compressed="yes" Platform="x64"
+    <Package InstallerVersion="405" Compressed="yes" Platform="x86"
          InstallScope="perMachine" InstallPrivileges="elevated"  
          Comments="Sample SharePoint list adapters for SQL Server for SQL Server Integration Services"
          Keywords="SharePoint Adapter SSIS SQL Server for SQL Server Integration Services"
@@ -58,6 +58,15 @@
               Key="Software\Microsoft\Microsoft SQL Server\120\SSIS\Setup\DTSPath" />
     </Property>
 
+    <Property Id="INSTALLDIR32_2016">
+      <RegistrySearch Id="FindDTSPath32_2016" Root="HKLM" Type="directory" Win64="no"
+              Key="Software\Microsoft\Microsoft SQL Server\130\SSIS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2016">
+      <RegistrySearch Id="FindDTSPath64_2016" Root="HKLM" Type="directory" Win64="yes"
+              Key="Software\Microsoft\Microsoft SQL Server\130\SSIS\Setup\DTSPath" />
+    </Property>
+
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
@@ -66,7 +75,7 @@
         <Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
           <File Id="SharePointUtilityDLLGACFile"
               Name="SharePointUtility.dll"  KeyPath="yes"
-              Source="$(var.SharePointUtility.TargetPath)" Assembly=".net" />
+              Source="..\..\Src\SharePointUtility.dll" Assembly=".net" />
         </Component>
 
         <Directory Id="INSTALLDIR32_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
@@ -173,6 +182,13 @@
                     Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
             </Component>
           </Directory>
+          <Directory Id="UpgradeMappings32_2012" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings32_2012" KeyPath="yes" Guid="{7A2C3F50-EABC-46B5-BBB4-1D40A717A8E0}">
+              <File Id="UpgradeMappings32_2012"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2012\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+            </Component>
+          </Directory>
         </Directory>
         <Directory Id="INSTALLDIR64_2012"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
           <Directory Id="ConnectionManager64_2012" Name="Connections">
@@ -187,6 +203,13 @@
               <File Id="PipelineComponentDLL64_2012"
                   Name="SharePointListAdapters.dll"
                     Source="$(var.SharePointListAdapters2012.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+          <Directory Id="UpgradeMappings64_2012" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings64_2012" KeyPath="yes" Guid="{EE0ECE1B-ECB8-418D-BEF1-4B0F052422AD}">
+              <File Id="UpgradeMappings64_2012"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2012\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -218,6 +241,16 @@
                     Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" />
             </Component>
           </Directory>
+          <Directory Id="UpgradeMappings32_2014" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings32_2014" KeyPath="yes" Guid="{177916FC-75DC-49E9-9C9A-2CD1D07A5784}">
+              <File Id="UpgradeMappings32_2014"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap32_2014"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
         </Directory>
         <Directory Id="INSTALLDIR64_2014"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
           <Directory Id="ConnectionManager64_2014" Name="Connections">
@@ -234,6 +267,16 @@
                     Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" />
             </Component>
           </Directory>
+          <Directory Id="UpgradeMappings64_2014" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings64_2014" KeyPath="yes" Guid="{566B8C9F-D181-4AB1-AFB3-174447DED1CD}">
+              <File Id="UpgradeMappings64_2014"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap64_2014"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
         </Directory>
         <Component Id="ConnectionManagerDLLGAC_2014"  Guid="{BE82F81F-09C9-44DC-A19C-2BE87422879F}">
           <File Id="ConnectionManagerDLLGACFile_2014"
@@ -244,6 +287,71 @@
           <File Id="PipelineComponentDLLGACFile_2014"
               Name="SharePointListAdapters.dll" KeyPath="yes"
               Source="$(var.SharePointListAdapters2014.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
+      </Directory>
+
+      <Directory Id="Folder2016" Name="PFiles2016">
+        <Directory Id="INSTALLDIR32_2016"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2016" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2016" KeyPath="yes" Guid="{12EC97EC-A186-4E3F-8855-354785E4C638}">
+              <File Id="ConnectionManagerDLL32_2016"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2016" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2016" KeyPath="yes" Guid="{678C5BAC-4C71-4CB3-9B98-B66450E39F66}">
+              <File Id="PipelineComponentDLL32_2016"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+          <Directory Id="UpgradeMappings32_2016" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings32_2016" KeyPath="yes" Guid="{35985735-1290-4BF1-B688-59FA3A3B15A3}">
+              <File Id="UpgradeMappings32_2016"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap32_2016"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2016"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2016" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2016" KeyPath="yes" Guid="{C3CA2033-43B1-4414-9865-EEF5DE41C126}">
+              <File Id="ConnectionManagerDLL64_2016"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2016" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2016" KeyPath="yes" Guid="{8235B05C-DE79-4507-BC57-30493913A2A6}">
+              <File Id="PipelineComponentDLL64_2016"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+          <Directory Id="UpgradeMappings64_2016" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings64_2016" KeyPath="yes" Guid="{6BFAC0A9-D5DC-466A-B4C8-43EB2EFD6E53}">
+              <File Id="UpgradeMappings64_2016"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap64_2016"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2016"  Guid="{A1D023CD-EF88-4CC3-A32A-1D063AD6DF94}">
+          <File Id="ConnectionManagerDLLGACFile_2016"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2016"  Guid="{92D9D303-83EF-4E02-AE6F-AA749F77D582}">
+          <File Id="PipelineComponentDLLGACFile_2016"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2016.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
         </Component>
       </Directory>
 
@@ -307,6 +415,7 @@
           <Condition Level="0"><![CDATA[INSTALLDIR32_2012 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2012" />
           <ComponentRef Id="PipelineComponents32_2012" />
+          <ComponentRef Id="UpgradeMappings32_2012" />
         </Feature>
         <Feature Id="Sql2012x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2012">
@@ -314,6 +423,7 @@
           <Condition Level="0"><![CDATA[INSTALLDIR64_2012 = "" OR INSTALLDIR64_2012 = INSTALLDIR32_2012]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2012" />
           <ComponentRef Id="PipelineComponents64_2012" />
+          <ComponentRef Id="UpgradeMappings64_2012" />
         </Feature>
       </Feature>
 
@@ -327,6 +437,7 @@
           <Condition Level="0"><![CDATA[INSTALLDIR32_2014 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2014" />
           <ComponentRef Id="PipelineComponents32_2014" />
+          <ComponentRef Id="UpgradeMappings32_2014" />
         </Feature>
         <Feature Id="Sql2014x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2014">
@@ -334,6 +445,29 @@
           <Condition Level="0"><![CDATA[INSTALLDIR64_2014 = "" OR INSTALLDIR64_2014 = INSTALLDIR32_2014]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2014" />
           <ComponentRef Id="PipelineComponents64_2014" />
+          <ComponentRef Id="UpgradeMappings64_2014" />
+        </Feature>
+      </Feature>
+
+      <Feature Id="Sql2016" Title="SSIS 2016 Components" Level="1" Display="expand" >
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2016 = "" AND INSTALLDIR64_2016  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2016" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2016" />
+        <Feature Id="Sql2016x86" Title="x86 Components (for designer and runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR32_2016">
+          <!-- Hide SQL 2016 if paths are not found -->
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2016 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2016" />
+          <ComponentRef Id="PipelineComponents32_2016" />
+          <ComponentRef Id="UpgradeMappings32_2016" />
+        </Feature>
+        <Feature Id="Sql2016x64" Title="x64 Components (for runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR64_2016">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2016 = "" OR INSTALLDIR64_2016 = INSTALLDIR32_2016]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2016" />
+          <ComponentRef Id="PipelineComponents64_2016" />
+          <ComponentRef Id="UpgradeMappings64_2016" />
         </Feature>
       </Feature>
     </Feature>
