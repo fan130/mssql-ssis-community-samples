@@ -186,7 +186,7 @@
             <Component Id="UpgradeMappings32_2012" KeyPath="yes" Guid="{7A2C3F50-EABC-46B5-BBB4-1D40A717A8E0}">
               <File Id="UpgradeMappings32_2012"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2012\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2012\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -209,7 +209,7 @@
             <Component Id="UpgradeMappings64_2012" KeyPath="yes" Guid="{EE0ECE1B-ECB8-418D-BEF1-4B0F052422AD}">
               <File Id="UpgradeMappings64_2012"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2012\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2012\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -245,10 +245,10 @@
             <Component Id="UpgradeMappings32_2014" KeyPath="yes" Guid="{177916FC-75DC-49E9-9C9A-2CD1D07A5784}">
               <File Id="UpgradeMappings32_2014"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2014\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
               <File Id="ExtensionMap32_2014"
                   Name="MicrosoftSamples.SharepointListAdapters.xml"
-                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+                    Source="..\UpgradeMappings\SQL2014\MicrosoftSamples.SharepointListAdapters.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -271,10 +271,10 @@
             <Component Id="UpgradeMappings64_2014" KeyPath="yes" Guid="{566B8C9F-D181-4AB1-AFB3-174447DED1CD}">
               <File Id="UpgradeMappings64_2014"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2014\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
               <File Id="ExtensionMap64_2014"
                   Name="MicrosoftSamples.SharepointListAdapters.xml"
-                    Source="..\SQL2014\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+                    Source="..\UpgradeMappings\SQL2014\MicrosoftSamples.SharepointListAdapters.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -310,10 +310,10 @@
             <Component Id="UpgradeMappings32_2016" KeyPath="yes" Guid="{35985735-1290-4BF1-B688-59FA3A3B15A3}">
               <File Id="UpgradeMappings32_2016"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2016\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
               <File Id="ExtensionMap32_2016"
                   Name="MicrosoftSamples.SharepointListAdapters.xml"
-                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+                    Source="..\UpgradeMappings\SQL2016\MicrosoftSamples.SharepointListAdapters.xml" />
             </Component>
           </Directory>
         </Directory>
@@ -336,10 +336,10 @@
             <Component Id="UpgradeMappings64_2016" KeyPath="yes" Guid="{6BFAC0A9-D5DC-466A-B4C8-43EB2EFD6E53}">
               <File Id="UpgradeMappings64_2016"
                   Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
-                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+                    Source="..\UpgradeMappings\SQL2016\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
               <File Id="ExtensionMap64_2016"
                   Name="MicrosoftSamples.SharepointListAdapters.xml"
-                    Source="..\SQL2016\UpgradeMappings\MicrosoftSamples.SharepointListAdapters.xml" />
+                    Source="..\UpgradeMappings\SQL2016\MicrosoftSamples.SharepointListAdapters.xml" />
             </Component>
           </Directory>
         </Directory>

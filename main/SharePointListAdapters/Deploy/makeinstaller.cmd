@@ -91,7 +91,7 @@ gacutil /uf sharepointutility
 
 ECHO Building the SharePointUtility First
 %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\msbuild SharePointUtility\SharePointUtility.vbproj /t:Rebuild /p:Configuration=Release
-gacutil /i SharePointUtility\bin\Release\sharepointutility.dll
+gacutil /i ..\Src\sharepointutility.dll
 
 ECHO Build the MSIs for Deployment...
 FindReplaceText " Platform=""x86""" " Platform=""x64"""
