@@ -1,3 +1,5 @@
+This project was migrated from codeplex project [Microsoft SQL Server Community Samples: Integration Services](https://sqlsrvintegrationsrv.codeplex.com/)
+
 **Project Description**  
 Microsoft SQL Server Integration Services (SSIS) makes it possible to build high performance data integration solutions, including the extraction, transformation, and loading (ETL) of data for data warehousing and as well as Data Transformation Services (DTS) backward compatible support.  
   
