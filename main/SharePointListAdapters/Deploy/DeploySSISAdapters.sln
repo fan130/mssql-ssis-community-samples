@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL 2005", "SQL 2005", "{9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}"
 EndProject
@@ -59,63 +59,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListAdapters2016"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListConnection2016", "SQL2016\SharePointListConnection\SharePointListConnection2016.csproj", "{598FF3C9-2426-4E5F-B235-CB7A9AF68857}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL 2017", "SQL 2017", "{75091D35-B7F4-44EA-92D3-1A5C486E31A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListAdapters2017", "SQL2017\SharePointListAdapters\SharePointListAdapters2017.csproj", "{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharePointListConnection2017", "SQL2017\SharePointListConnection\SharePointListConnection2017.csproj", "{BFA6325A-52D5-4DF6-8031-655283F2608B}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 14
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs02
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = SharePointUtility\\SharePointUtility.vbproj
-		SccProjectName1 = SharePointUtility
-		SccLocalPath1 = SharePointUtility
-		SccProjectUniqueName2 = SQL2008\\SharePointListAdapters\\SharePointListAdapters2008.csproj
-		SccProjectTopLevelParentUniqueName2 = DeploySSISAdapters.sln
-		SccProjectName2 = SQL2008/SharePointListAdapters
-		SccLocalPath2 = SQL2008\\SharePointListAdapters
-		SccProjectUniqueName3 = SQL2012\\SharePointListAdapters\\SharePointListAdapters2012.csproj
-		SccProjectTopLevelParentUniqueName3 = DeploySSISAdapters.sln
-		SccProjectName3 = SQL2012/SharePointListAdapters
-		SccLocalPath3 = SQL2012\\SharePointListAdapters
-		SccProjectUniqueName4 = SQL2005\\SharePointListAdapters\\SharePointListAdapters2005.csproj
-		SccProjectTopLevelParentUniqueName4 = DeploySSISAdapters.sln
-		SccProjectName4 = SQL2005/SharePointListAdapters
-		SccLocalPath4 = SQL2005\\SharePointListAdapters
-		SccProjectUniqueName5 = SQL2005\\SharePointListConnection\\SharePointListConnection2005.csproj
-		SccProjectTopLevelParentUniqueName5 = DeploySSISAdapters.sln
-		SccProjectName5 = SQL2005/SharePointListConnection
-		SccLocalPath5 = SQL2005\\SharePointListConnection
-		SccProjectUniqueName6 = SQL2008\\SharePointListConnection\\SharePointListConnection2008.csproj
-		SccProjectTopLevelParentUniqueName6 = DeploySSISAdapters.sln
-		SccProjectName6 = SQL2008/SharePointListConnection
-		SccLocalPath6 = SQL2008\\SharePointListConnection
-		SccProjectUniqueName7 = SQL2012\\SharePointListConnection\\SharePointListConnection2012.csproj
-		SccProjectTopLevelParentUniqueName7 = DeploySSISAdapters.sln
-		SccProjectName7 = SQL2012/SharePointListConnection
-		SccLocalPath7 = SQL2012\\SharePointListConnection
-		SccProjectUniqueName8 = SSISAdapterInstaller\\SSISAdapterInstaller.wixproj
-		SccProjectTopLevelParentUniqueName8 = DeploySSISAdapters.sln
-		SccProjectName8 = SSISAdapterInstaller
-		SccLocalPath8 = SSISAdapterInstaller
-		SccProjectUniqueName9 = FindReplaceText.exe
-		SccProjectTopLevelParentUniqueName9 = DeploySSISAdapters.sln
-		SccLocalPath9 = .
-		SccProjectUniqueName10 = SQL2014\\SharePointListAdapters\\SharePointListAdapters2014.csproj
-		SccProjectTopLevelParentUniqueName10 = DeploySSISAdapters.sln
-		SccProjectName10 = SQL2014/SharePointListAdapters
-		SccLocalPath10 = SQL2014\\SharePointListAdapters
-		SccProjectUniqueName11 = SQL2014\\SharePointListConnection\\SharePointListConnection2014.csproj
-		SccProjectTopLevelParentUniqueName11 = DeploySSISAdapters.sln
-		SccProjectName11 = SQL2014/SharePointListConnection
-		SccLocalPath11 = SQL2014\\SharePointListConnection
-		SccProjectUniqueName12 = SQL2016\\SharePointListAdapters\\SharePointListAdapters2016.csproj
-		SccProjectTopLevelParentUniqueName12 = DeploySSISAdapters.sln
-		SccProjectName12 = SQL2016/SharePointListAdapters
-		SccLocalPath12 = SQL2016\\SharePointListAdapters
-		SccProjectUniqueName13 = SQL2016\\SharePointListConnection\\SharePointListConnection2016.csproj
-		SccProjectTopLevelParentUniqueName13 = DeploySSISAdapters.sln
-		SccProjectName13 = SQL2016/SharePointListConnection
-		SccLocalPath13 = SQL2016\\SharePointListConnection
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -206,12 +156,12 @@ Global
 		{CBA05AB3-6FEE-4117-94F9-F4ED59A60567}.Release|Mixed Platforms.Build.0 = Release|x86
 		{CBA05AB3-6FEE-4117-94F9-F4ED59A60567}.Release|x86.ActiveCfg = Release|x86
 		{CBA05AB3-6FEE-4117-94F9-F4ED59A60567}.Release|x86.Build.0 = Release|x86
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|Any CPU.ActiveCfg = Debug
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|Mixed Platforms.ActiveCfg = Debug
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|x86.ActiveCfg = Debug
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|Any CPU.ActiveCfg = Debug
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|Mixed Platforms.ActiveCfg = Debug
-		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|x86.ActiveCfg = Debug
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|Any CPU.ActiveCfg = Release
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|Mixed Platforms.ActiveCfg = Release
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Debug|x86.ActiveCfg = Release
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|Any CPU.ActiveCfg = Release
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|Mixed Platforms.ActiveCfg = Release
+		{04DCD2ED-D340-4037-A70F-0950A91887F5}.Release|x86.ActiveCfg = Release
 		{1B854E8E-199E-4405-A16F-C8B5515134F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1B854E8E-199E-4405-A16F-C8B5515134F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B854E8E-199E-4405-A16F-C8B5515134F7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -252,22 +202,51 @@ Global
 		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{598FF3C9-2426-4E5F-B235-CB7A9AF68857}.Release|x86.ActiveCfg = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Debug|x86.Build.0 = Debug|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|x86.ActiveCfg = Release|Any CPU
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE}.Release|x86.Build.0 = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Debug|x86.Build.0 = Debug|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|x86.ActiveCfg = Release|Any CPU
+		{BFA6325A-52D5-4DF6-8031-655283F2608B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{3C83B6BA-5175-4CFC-9A37-65474741DBC9} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
-		{56CE54A6-C1E3-4135-AB67-4EC78346E815} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
-		{B0F3C370-D60F-4C47-9501-25E55A517B14} = {BE4829AF-08F2-46F4-8904-E03FB98ADE65}
-		{717964FA-E76D-4FC2-8283-0DB3DCCB3282} = {BE4829AF-08F2-46F4-8904-E03FB98ADE65}
 		{FCE864A7-7B0C-48A5-9F79-F92AF2402082} = {74C3EEE8-004A-461F-ABB1-0A7D361CF0A3}
 		{2EF043E5-D843-4085-9801-5269AED387C8} = {74C3EEE8-004A-461F-ABB1-0A7D361CF0A3}
+		{B0F3C370-D60F-4C47-9501-25E55A517B14} = {BE4829AF-08F2-46F4-8904-E03FB98ADE65}
+		{717964FA-E76D-4FC2-8283-0DB3DCCB3282} = {BE4829AF-08F2-46F4-8904-E03FB98ADE65}
+		{3C83B6BA-5175-4CFC-9A37-65474741DBC9} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
+		{56CE54A6-C1E3-4135-AB67-4EC78346E815} = {9D85D6C7-1DC9-4FB3-867D-00011A71ACE3}
 		{CBA05AB3-6FEE-4117-94F9-F4ED59A60567} = {D3EB6E20-7D20-47DD-AE8E-4E451F46A03A}
 		{04DCD2ED-D340-4037-A70F-0950A91887F5} = {CEBFC1BD-A6BB-4C30-855B-1368B8DC0B03}
 		{1B854E8E-199E-4405-A16F-C8B5515134F7} = {6F64A38E-5DA6-4F39-A7AB-3B912D33AD04}
 		{AE1E5152-5329-4A97-9E63-45989836C34E} = {6F64A38E-5DA6-4F39-A7AB-3B912D33AD04}
 		{CF2FDC74-0861-41CC-9837-4ABF7039DAF8} = {BCCFB0FC-826C-4D23-AD06-3A3B7629E7BA}
 		{598FF3C9-2426-4E5F-B235-CB7A9AF68857} = {BCCFB0FC-826C-4D23-AD06-3A3B7629E7BA}
+		{ABAA8713-6A2A-4858-821D-B31A6EB0BDFE} = {75091D35-B7F4-44EA-92D3-1A5C486E31A4}
+		{BFA6325A-52D5-4DF6-8031-655283F2608B} = {75091D35-B7F4-44EA-92D3-1A5C486E31A4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {539E9034-D095-443B-A9A9-8C40DF06710D}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,28 @@
+<Mappings xmlns="http://www.microsoft.com/SqlServer/Dts/UpgradeMapping.xsd">
+  <!-- Extensions -->
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListSource"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListSource"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2005.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListSource"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2008.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListSource"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2012.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListSource, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListDestination"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListDestination"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2005.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListDestination"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2008.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" />
+  <ExtensionMapping tag="MicrosoftSamples.SharePointListDestination"
+                    oldAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2012.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47"
+                    newAssemblyStrongName="Microsoft.Samples.SqlServer.SSIS.SharePointListAdapters.SharePointListDestination, SharePointListAdapters, Version=1.2017.0.0, Culture=neutral, PublicKeyToken=f4b3011e1ece9d47" /> 
+</Mappings>

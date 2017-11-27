@@ -8,6 +8,7 @@ xcopy ..\Src\*.cs sql2008 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2012 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2014 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\*.cs Sql2016 /s /y /EXCLUDE:excludefilelist.txt
+xcopy ..\Src\*.cs Sql2017 /s /y /EXCLUDE:excludefilelist.txt
 xcopy ..\Src\SharePointUtility\*.vb SharePointUtility /s /y /EXCLUDE:excludefilelist.txt
 del *.pdb /s
 del *.dll /s
@@ -82,6 +83,20 @@ FindReplaceText "IDTSOutput90" "IDTSOutput100"
 FindReplaceText "IDTSOutputColumn90" "IDTSOutputColumn100" 
 FindReplaceText "IDTSRuntimeConnection90" "IDTSRuntimeConnection100" 
 FindReplaceText "1.0.0.0" "1.2016.0.0" 
+cd..
+
+cd sql2017
+copy ..\FindReplaceText.exe /Y
+FindReplaceText "IDTSInputColumnCollection90" "IDTSInputColumnCollection100"
+FindReplaceText "IDTSExternalMetadataColumn90" "IDTSExternalMetadataColumn100" 
+FindReplaceText "IDTSInput90" "IDTSInput100" 
+FindReplaceText "IDTSInputColumn90" "IDTSInputColumn100" 
+FindReplaceText "IDTSCustomProperty90" "IDTSCustomProperty100" 
+FindReplaceText "IDTSVirtualInputColumn90" "IDTSVirtualInputColumn100" 
+FindReplaceText "IDTSOutput90" "IDTSOutput100" 
+FindReplaceText "IDTSOutputColumn90" "IDTSOutputColumn100" 
+FindReplaceText "IDTSRuntimeConnection90" "IDTSRuntimeConnection100" 
+FindReplaceText "1.0.0.0" "1.2017.0.0" 
 cd..
 
 ECHO Clear the GAC of any components which may interfere with the deployment
