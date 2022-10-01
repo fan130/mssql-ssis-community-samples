@@ -16,13 +16,13 @@
          Manufacturer="Microsoft" />
 
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
-    <PropertyRef Id="NETFRAMEWORK35" />
+    <!--<PropertyRef Id="NETFRAMEWORK35" />
     <Condition Message="This application requires .NET Framework 3.5. Please install the .NET Framework then run this installer again.">
       <![CDATA[Installed OR NETFRAMEWORK35]]>
-    </Condition>
+    </Condition>-->
 
     <!-- Look for the SSIS Installation Folders for each edition and for each bitness we need -->		
-    <Property Id="INSTALLDIR32_2005">
+    <!--<Property Id="INSTALLDIR32_2005">
       <RegistrySearch Id="FindDTSPath32_2005" Root="HKLM" Type="directory" Win64="no" 
               Key="Software\Microsoft\MSDTS\Setup\DTSPath" />
     </Property>
@@ -74,18 +74,22 @@
     <Property Id="INSTALLDIR64_2017">
       <RegistrySearch Id="FindDTSPath64_2017" Root="HKLM" Type="raw" Win64="yes"
               Key="Software\Microsoft\Microsoft SQL Server\140\SSIS\Setup\DTSPath" />
+    </Property>-->
+	  
+	<Property Id="INSTALLDIR32_2019">
+      <RegistrySearch Id="FindDTSPath32_2019" Root="HKLM" Type="raw" Win64="no"
+              Key="Software\Microsoft\Microsoft SQL Server\150\SSIS\Setup\DTSPath" />
+    </Property>
+    <Property Id="INSTALLDIR64_2019">
+      <RegistrySearch Id="FindDTSPath64_2019" Root="HKLM" Type="raw" Win64="yes"
+              Key="Software\Microsoft\Microsoft SQL Server\150\SSIS\Setup\DTSPath" />
     </Property>
 
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-    <Directory Id="TARGETDIR" Name="SourceDir">
+	  <Directory Id="TARGETDIR" Name="SourceDir">
       <!-- Components to install: Gacced components, and version specific files -->
-      <Directory Id="Folder2005" Name="PFiles2005">
-        <Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
-          <File Id="SharePointUtilityDLLGACFile"
-              Name="SharePointUtility.dll"  KeyPath="yes"
-              Source="..\..\Src\SharePointUtility.dll" Assembly=".net" />
-        </Component>
+      <!--<Directory Id="Folder2005" Name="PFiles2005">
 
         <Directory Id="INSTALLDIR32_2005"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
           <Directory Id="ConnectionManager32_2005" Name="Connections">
@@ -427,6 +431,76 @@
               Name="SharePointListAdapters.dll" KeyPath="yes"
               Source="$(var.SharePointListAdapters2017.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
         </Component>
+      </Directory>-->
+		  
+	  <Directory Id="Folder2019" Name="PFiles2019">
+		<Component Id="SharePointUtilityDLLGAC"  Guid="{419996DA-F5BC-44B8-98DE-8B44C327E42E}">
+          <File Id="SharePointUtilityDLLGACFile"
+              Name="SharePointUtility.dll"  KeyPath="yes"
+              Source="..\..\Src\SharePointUtility.dll" Assembly=".net" />
+        </Component>
+        <Directory Id="INSTALLDIR32_2019"  Name="Microsoft SharePoint SSIS Adapter Sample x32">
+          <Directory Id="ConnectionManager32_2019" Name="Connections">
+            <Component Id="ComponentConnectionManager32_2019" KeyPath="yes" Guid="{19E53515-E51C-4A2B-8A06-B780D4C331FE}">
+              <File Id="ConnectionManagerDLL32_2019"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters32_2019" Name="PipelineComponents">
+            <Component Id="PipelineComponents32_2019" KeyPath="yes" Guid="{1DC67954-2293-46D3-B553-8EE5F7165D31}">
+              <File Id="PipelineComponentDLL32_2019"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+          <Directory Id="UpgradeMappings32_2019" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings32_2019" KeyPath="yes" Guid="{28E5A1C1-F714-41B8-B695-7C905193C28B}">
+              <File Id="UpgradeMappings32_2019"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\UpgradeMappings\SQL2019\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap32_2019"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\UpgradeMappings\SQL2019\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="INSTALLDIR64_2019"  Name="Microsoft SharePoint SSIS Adapter Sample x64">
+          <Directory Id="ConnectionManager64_2019" Name="Connections">
+            <Component Id="ComponentConnectionManager64_2019" KeyPath="yes" Guid="{11F68608-179F-4695-B409-E1C472AA4DE0}">
+              <File Id="ConnectionManagerDLL64_2019"
+                  Name="SharePointListConnectionManager.dll"
+                    Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListConnectionManager.dll"  />
+            </Component>
+          </Directory>
+          <Directory Id="DataAdapters64_2019" Name="PipelineComponents">
+            <Component Id="PipelineComponents64_2019" KeyPath="yes" Guid="{2235C67D-6697-47CC-BAE6-D080BB1256D6}">
+              <File Id="PipelineComponentDLL64_2019"
+                  Name="SharePointListAdapters.dll"
+                    Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListAdapters.dll" />
+            </Component>
+          </Directory>
+          <Directory Id="UpgradeMappings64_2019" Name="UpgradeMappings">
+            <Component Id="UpgradeMappings64_2019" KeyPath="yes" Guid="{A5C0EA13-0901-4B97-A1AD-BD9BC1495F84}">
+              <File Id="UpgradeMappings64_2019"
+                  Name="MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml"
+                    Source="..\UpgradeMappings\SQL2019\MicrosoftSamples.SharepointListAdapters.UpgradeMappings.xml" />
+              <File Id="ExtensionMap64_2019"
+                  Name="MicrosoftSamples.SharepointListAdapters.xml"
+                    Source="..\UpgradeMappings\SQL2019\MicrosoftSamples.SharepointListAdapters.xml" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Component Id="ConnectionManagerDLLGAC_2019"  Guid="{5A012825-7048-4C75-888E-DEDD9E9D91AA}">
+          <File Id="ConnectionManagerDLLGACFile_2019"
+              Name="SharePointListConnectionManager.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListConnectionManager.dll" Assembly=".net" />
+        </Component>
+        <Component Id="PipelineComponentDLLGAC_2019"  Guid="{EA0FB9EE-52C7-4FD7-B1A0-4ED713EC65D3}">
+          <File Id="PipelineComponentDLLGACFile_2019"
+              Name="SharePointListAdapters.dll" KeyPath="yes"
+              Source="$(var.SharePointListAdapters2019.TargetDir)\SharePointListAdapters.dll" Assembly=".net" />
+        </Component>
       </Directory>
 
       <Component Id="RestartSSISService" Guid="{36568AC6-C8AE-4CAD-836F-AE9C7722C07A}">
@@ -439,8 +513,8 @@
          TypicalDefault="install">
       <ComponentRef Id="RestartSSISService" />
       <ComponentRef Id="SharePointUtilityDLLGAC" />
-      <Feature Id="Sql2005" Title="SSIS 2005 Components" Level="1" Display="expand">
-        <!-- Hide SQL 2005 if paths are not found -->
+      <!--<Feature Id="Sql2005" Title="SSIS 2005 Components" Level="1" Display="expand">
+        --><!-- Hide SQL 2005 if paths are not found --><!--
         <Condition Level="0"><![CDATA[INSTALLDIR32_2005 = "" AND INSTALLDIR64_2005  = ""]]></Condition>
         <ComponentRef Id="ConnectionManagerDLLGAC_2005" />
         <ComponentRef Id="PipelineComponentDLLGAC_2005" />
@@ -452,7 +526,7 @@
         </Feature>
         <Feature Id="Sql2005x64" Title="x64 Components (for runtime)" Level="1" 
            ConfigurableDirectory="INSTALLDIR64_2005">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2005 = "" OR INSTALLDIR64_2005 = INSTALLDIR32_2005]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2005" />
           <ComponentRef Id="PipelineComponents64_2005" />
@@ -465,14 +539,14 @@
         <ComponentRef Id="PipelineComponentDLLGAC_2008" />
         <Feature Id="Sql2008x86" Title="x86 Components (for designer and runtime)" Level="1" 
            ConfigurableDirectory="INSTALLDIR32_2008">
-          <!-- Hide SQL 2008 if paths are not found -->
+          --><!-- Hide SQL 2008 if paths are not found --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR32_2008 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2008" />
           <ComponentRef Id="PipelineComponents32_2008" />
         </Feature>
         <Feature Id="Sql2008x64" Title="x64 Components (for runtime)" Level="1"  
            ConfigurableDirectory="INSTALLDIR64_2008">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2008 = "" OR INSTALLDIR64_2008 = INSTALLDIR32_2008]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2008" />
           <ComponentRef Id="PipelineComponents64_2008" />
@@ -485,7 +559,7 @@
         <ComponentRef Id="PipelineComponentDLLGAC_2012" />
         <Feature Id="Sql2012x86" Title="x86 Components (for designer and runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR32_2012">
-          <!-- Hide SQL 2012 if paths are not found -->
+          --><!-- Hide SQL 2012 if paths are not found --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR32_2012 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2012" />
           <ComponentRef Id="PipelineComponents32_2012" />
@@ -493,7 +567,7 @@
         </Feature>
         <Feature Id="Sql2012x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2012">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2012 = "" OR INSTALLDIR64_2012 = INSTALLDIR32_2012]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2012" />
           <ComponentRef Id="PipelineComponents64_2012" />
@@ -507,7 +581,7 @@
         <ComponentRef Id="PipelineComponentDLLGAC_2014" />
         <Feature Id="Sql2014x86" Title="x86 Components (for designer and runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR32_2014">
-          <!-- Hide SQL 2014 if paths are not found -->
+          --><!-- Hide SQL 2014 if paths are not found --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR32_2014 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2014" />
           <ComponentRef Id="PipelineComponents32_2014" />
@@ -515,7 +589,7 @@
         </Feature>
         <Feature Id="Sql2014x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2014">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2014 = "" OR INSTALLDIR64_2014 = INSTALLDIR32_2014]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2014" />
           <ComponentRef Id="PipelineComponents64_2014" />
@@ -529,7 +603,7 @@
         <ComponentRef Id="PipelineComponentDLLGAC_2016" />
         <Feature Id="Sql2016x86" Title="x86 Components (for designer and runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR32_2016">
-          <!-- Hide SQL 2016 if paths are not found -->
+          --><!-- Hide SQL 2016 if paths are not found --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR32_2016 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2016" />
           <ComponentRef Id="PipelineComponents32_2016" />
@@ -537,7 +611,7 @@
         </Feature>
         <Feature Id="Sql2016x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2016">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2016 = "" OR INSTALLDIR64_2016 = INSTALLDIR32_2016]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2016" />
           <ComponentRef Id="PipelineComponents64_2016" />
@@ -551,7 +625,7 @@
         <ComponentRef Id="PipelineComponentDLLGAC_2017" />
         <Feature Id="Sql2017x86" Title="x86 Components (for designer and runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR32_2017">
-          <!-- Hide SQL 2017 if paths are not found -->
+          --><!-- Hide SQL 2017 if paths are not found --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR32_2017 = ""]]></Condition>
           <ComponentRef Id="ComponentConnectionManager32_2017" />
           <ComponentRef Id="PipelineComponents32_2017" />
@@ -559,11 +633,33 @@
         </Feature>
         <Feature Id="Sql2017x64" Title="x64 Components (for runtime)" Level="1"
            ConfigurableDirectory="INSTALLDIR64_2017">
-          <!-- Hide 64 bit option if not 64 bit -->
+          --><!-- Hide 64 bit option if not 64 bit --><!--
           <Condition Level="0"><![CDATA[INSTALLDIR64_2017 = "" OR INSTALLDIR64_2017 = INSTALLDIR32_2017]]></Condition>
           <ComponentRef Id="ComponentConnectionManager64_2017" />
           <ComponentRef Id="PipelineComponents64_2017" />
           <ComponentRef Id="UpgradeMappings64_2017" />
+        </Feature>
+      </Feature>-->
+	
+	  <Feature Id="Sql2019" Title="SSIS 2019 Components" Level="1" Display="expand" >
+        <Condition Level="0"><![CDATA[INSTALLDIR32_2019 = "" AND INSTALLDIR64_2019  = ""]]></Condition>
+        <ComponentRef Id="ConnectionManagerDLLGAC_2019" />
+        <ComponentRef Id="PipelineComponentDLLGAC_2019" />
+        <Feature Id="Sql2019x86" Title="x86 Components (for designer and runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR32_2019">
+          <!-- Hide SQL 2017 if paths are not found -->
+          <Condition Level="0"><![CDATA[INSTALLDIR32_2019 = ""]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager32_2019" />
+          <ComponentRef Id="PipelineComponents32_2019" />
+          <ComponentRef Id="UpgradeMappings32_2019" />
+        </Feature>
+        <Feature Id="Sql2019x64" Title="x64 Components (for runtime)" Level="1"
+           ConfigurableDirectory="INSTALLDIR64_2019">
+          <!-- Hide 64 bit option if not 64 bit -->
+          <Condition Level="0"><![CDATA[INSTALLDIR64_2019 = "" OR INSTALLDIR64_2019 = INSTALLDIR32_2019]]></Condition>
+          <ComponentRef Id="ComponentConnectionManager64_2019" />
+          <ComponentRef Id="PipelineComponents64_2019" />
+          <ComponentRef Id="UpgradeMappings64_2019" />
         </Feature>
       </Feature>
     </Feature>

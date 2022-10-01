@@ -54,49 +54,9 @@
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
       <RefTargetDir>INSTALLLOCATION</RefTargetDir>
     </ProjectReference>
-    <ProjectReference Include="..\SQL2005\SharePointListAdapters\SharePointListAdapters2005.csproj">
-      <Name>SharePointListAdapters2005</Name>
-      <Project>{56ce54a6-c1e3-4135-ab67-4ec78346e815}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLLOCATION</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\SQL2008\SharePointListAdapters\SharePointListAdapters2008.csproj">
-      <Name>SharePointListAdapters2008</Name>
-      <Project>{b0f3c370-d60f-4c47-9501-25e55a517b14}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLLOCATION</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\SQL2012\SharePointListAdapters\SharePointListAdapters2012.csproj">
-      <Name>SharePointListAdapters2012</Name>
-      <Project>{fce864a7-7b0c-48a5-9f79-f92af2402082}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLLOCATION</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\SQL2014\SharePointListAdapters\SharePointListAdapters2014.csproj">
-      <Name>SharePointListAdapters2014</Name>
-      <Project>{1b854e8e-199e-4405-a16f-c8b5515134f7}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\SQL2016\SharePointListAdapters\SharePointListAdapters2016.csproj">
-      <Name>SharePointListAdapters2016</Name>
-      <Project>{cf2fdc74-0861-41cc-9837-4abf7039daf8}</Project>
-      <Private>True</Private>
-      <DoNotHarvest>True</DoNotHarvest>
-      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
-    </ProjectReference>
-    <ProjectReference Include="..\SQL2017\SharePointListAdapters\SharePointListAdapters2017.csproj">
-      <Name>SharePointListAdapters2017</Name>
-      <Project>{abaa8713-6a2a-4858-821d-b31a6eb0bdfe}</Project>
+    <ProjectReference Include="..\SQL2019\SharePointListAdapters\SharePointListAdapters2019.csproj">
+      <Name>SharePointListAdapters2019</Name>
+      <Project>{d3194763-fafb-42d6-8358-16630ad5ec06}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>

@@ -81,9 +81,8 @@
       <HintPath>..\..\..\v90_References\Microsoft.SQLServer.DTSRuntimeWrap.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.SQLServer.ManagedDTS, Version=9.0.242.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <HintPath>..\..\..\v90_References\Microsoft.SQLServer.ManagedDTS.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Microsoft.SqlServer.ManagedDTS">
+      <HintPath>..\..\..\..\..\..\..\..\..\..\Program Files (x86)\Microsoft SQL Server\150\SDK\Assemblies\Microsoft.SqlServer.ManagedDTS.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.SqlServer.PipelineHost, Version=9.0.242.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\..\..\v90_References\Microsoft.SqlServer.PipelineHost.dll</HintPath>
